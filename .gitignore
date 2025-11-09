@@ -1,0 +1,26 @@
+# Byte-compiled files
+*.pyc
+__pycache__/
+.pytest_cache/
+venv
+.venv
+
+# Cache
+.cache
+
+# Directories
+build
+dist
+MACOSX/
+
+# Environments
+.env
+
+# Files
+*.log
+*.sqlite3
+*.db
+
+# IDE files
+.DS_Store
+.idea/

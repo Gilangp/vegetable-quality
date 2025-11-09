@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Vegetable Quality Detection Testing</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <h1>Vegetable Quality Detection Testing</h1>
+    <form enctype="multipart/form-data">
+      <label for="image">Select a picture of vegetables (JPG or PNG):</label>
+      <input type="file" id="image" name="file" accept="image/jpeg, image/png" required />
+      <button type="submit">Detect</button>
+    </form>
+    <br />
+    <p></p>
+    <br />
+    <details style="display: none">
+      <summary>Show/Hide Prediction Results (JSON)</summary>
+      <pre></pre>
+    </details>
+    <br />
+    <h5>
+      Made with ❤️ by
+      <a href="https://github.com/a6iyyu">Rafi Abiyyu Airlangga</a>
+    </h5>
+    <script src="assets/main.js" type="module"></script>
+  </body>
+</html>

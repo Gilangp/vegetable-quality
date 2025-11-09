@@ -1,0 +1,24 @@
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "F",  # Pyflakes: error (variabel tidak terdefinisi, dll.)
+    "E",  # Pycodestyle: error gaya (pep8)
+    "W",  # Pycodestyle: peringatan gaya (pep8)
+    "I",  # isort: import yang tidak terurut
+    "UP", # pyupgrade: sintaks yang lebih modern
+    "B",  # flake8-bugbear: potensi bug (misal: argumen default)
+]
+
+# Tambahkan berkas/folder yang ingin diabaikan
+exclude = [".git", "venv", ".venv", "__pycache__", "build", "dist", "migrations", "node_modules"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
