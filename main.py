@@ -1,5 +1,6 @@
 from app.controllers.citizen import Citizen as CitizenController
 from app.models.citizen import Citizen as CitizenSchema
+from app.routes.prediction import router as prediction_router
 from config.database import get_db
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +12,13 @@ import os
 BASE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 VIEWS_DIRECTORY = os.path.join(BASE_DIRECTORY, "views")
 
-app = FastAPI(title="Pengujian Deteksi Keutuhan Sayur", version="1.0.0")
+app = FastAPI(
+    title="Pengujian Deteksi Keutuhan Sayur",
+    version="1.0.0",
+    description="API untuk klasifikasi keutuhan sayur (Utuh/Tidak Utuh) menggunakan MobileNetV2",
+    docs_url="/docs",  # Swagger UI
+    redoc_url="/redoc"  # ReDoc UI
+)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.mount("/assets", StaticFiles(directory=VIEWS_DIRECTORY, html=True), name="views")
 
@@ -74,3 +81,7 @@ async def vegetable_quality():
     Halaman untuk menampilkan kualitas sayur.
     """
     return FileResponse(os.path.join(VIEWS_DIRECTORY, "html/vegetable-quality.html"))
+
+
+# prediction routes
+app.include_router(prediction_router)
