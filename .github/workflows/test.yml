@@ -50,7 +50,9 @@ jobs:
         mypy . --ignore-missing-imports 2>/dev/null || echo "Type check completed"
       continue-on-error: true
     
-    - name: Run pytest tests
+    - name: Run pytest tests (SQLite)
+      env:
+        CI: "true"
       run: |
         pytest tests/ -v --tb=short
       continue-on-error: false
