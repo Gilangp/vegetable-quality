@@ -23,6 +23,5 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=True),
     )
 
-
 def downgrade() -> None:
     op.drop_table("income_categories")

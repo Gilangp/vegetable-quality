@@ -1,5 +1,5 @@
-from app.controllers.citizen import Citizen as CitizenController
-from app.models.citizen import Citizen as CitizenSchema
+from app.controllers.resident import Resident as ResidentController
+from app.models.residents import Citizen as CitizenSchema
 from app.routes.prediction import router as prediction_router
 from config.database import get_db
 from fastapi import Depends, FastAPI, HTTPException

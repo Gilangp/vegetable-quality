@@ -5,18 +5,14 @@ Revises: e3e4f688e84c
 Create Date: 2025-11-30 14:32:29.300224
 
 """
-from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
+from typing import Sequence, Union
 
-
-# revision identifiers, used by Alembic.
 revision: str = 'a2904c974190'
 down_revision: Union[str, Sequence[str], None] = 'e3e4f688e84c'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
 
 def upgrade() -> None:
     op.create_table(
@@ -29,7 +25,6 @@ def upgrade() -> None:
         sa.Column("is_valid_for_marketplace", sa.Boolean(), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=True),
     )
-
 
 def downgrade() -> None:
     op.drop_table("verification_results")

@@ -1,16 +1,16 @@
-from app.models.citizen import Citizen as CitizenSchema
+from app.models.residents import Resident as ResidentSchema
 from database.migrations.citizen import Citizen as CitizenDB
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-class Citizen:
+class Resident:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def store(self, data: CitizenSchema):
+    def store(self, data: ResidentSchema):
         try:
-            new_citizen = CitizenDB(**data.model_dump())
-            self.db.add(new_citizen)
+            new_resident = ResidentDB(**data.model_dump())
+            self.db.add(new_resident)
             self.db.commit()
             self.db.refresh(new_citizen)
             return new_citizen
