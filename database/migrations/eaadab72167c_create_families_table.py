@@ -5,18 +5,14 @@ Revises: 6a1b7295d422
 Create Date: 2025-11-30 14:07:29.813569
 
 """
-from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
+from typing import Sequence, Union
 
-
-# revision identifiers, used by Alembic.
 revision: str = 'eaadab72167c'
 down_revision: Union[str, Sequence[str], None] = '6a1b7295d422'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
 
 def upgrade() -> None:
     op.create_table(
@@ -27,7 +23,6 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
     )
-
 
 def downgrade() -> None:
     op.drop_table("families")

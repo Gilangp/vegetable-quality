@@ -5,18 +5,14 @@ Revises: 387e0194211f
 Create Date: 2025-11-30 14:21:17.619575
 
 """
-from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
+from typing import Sequence, Union
 
-
-# revision identifiers, used by Alembic.
 revision: str = 'f61ebfc68a55'
 down_revision: Union[str, Sequence[str], None] = '387e0194211f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
 
 def upgrade() -> None:
     op.create_table(
@@ -27,7 +23,6 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(255), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=True),
     )
-
 
 def downgrade() -> None:
     op.drop_table("activity_logs")

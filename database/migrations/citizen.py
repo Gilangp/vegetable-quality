@@ -24,4 +24,4 @@ class Citizen(Base):
     def __repr__(self) -> str:
         return f"<Citizen(nik={self.nik}, nama={self.nama})>"
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)

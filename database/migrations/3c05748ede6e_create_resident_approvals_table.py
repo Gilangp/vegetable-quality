@@ -5,11 +5,9 @@ Revises: f61ebfc68a55
 Create Date: 2025-11-30 14:22:52.982413
 
 """
-from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
-
+from typing import Sequence, Union
 
 # revision identifiers, used by Alembic.
 revision: str = '3c05748ede6e'
@@ -36,7 +34,6 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
     )
-
 
 def downgrade() -> None:
     op.drop_table("resident_approvals")
