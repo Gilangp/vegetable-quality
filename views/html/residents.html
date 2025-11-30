@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Warga - JAWARA</title>
+    <link rel="icon" type="image/x-icon" href="/assets/assets/favicon.ico" />
+    <link rel="stylesheet" href="/assets/css/residents.css" />
+  </head>
+  <body>
+    <nav id="resident-nav">
+      <ul>
+        <li><a href="/">Beranda</a></li>
+        <li><a href="/residents/" class="active">Data Warga</a></li>
+      </ul>
+    </nav>
+
+    <main id="resident-container">
+      <h1 id="page-title">Data Warga</h1>
+      <p id="page-desc">
+        Kelola data kependudukan sesuai kartu keluarga dan domisili.
+      </p>
+      <form id="resident-form">
+        <fieldset class="form-group">
+          <label for="family_id">Family ID</label>
+          <input
+            type="number"
+            id="family_id"
+            name="family_id"
+            placeholder="Contoh: 1"
+            required
+          />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="house_id">House ID</label>
+          <input
+            type="number"
+            id="house_id"
+            name="house_id"
+            placeholder="Contoh: 1"
+            required
+          />
+        </fieldset>
+        <hr id="form-divider" />
+        <fieldset class="form-group">
+          <label for="nik">NIK</label>
+          <input
+            type="text"
+            id="nik"
+            name="nik"
+            placeholder="16 digit NIK"
+            required
+          />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="name">Nama Lengkap</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Nama sesuai KTP"
+            required
+          />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="phone">Nomor Telepon</label>
+          <input type="text" id="phone" name="phone" placeholder="08..." />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="birth_place">Tempat Lahir</label>
+          <input type="text" id="birth_place" name="birth_place" />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="birth_date">Tanggal Lahir</label>
+          <input type="date" id="birth_date" name="birth_date" />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="gender">Jenis Kelamin</label>
+          <select id="gender" name="gender">
+            <option value="Laki-laki">Laki-laki</option>
+            <option value="Perempuan">Perempuan</option>
+          </select>
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="status">Status Perkawinan</label>
+          <select id="status" name="status">
+            <option value="Belum Menikah">Belum Menikah</option>
+            <option value="Menikah">Menikah</option>
+            <option value="Cerai Hidup">Cerai Hidup</option>
+            <option value="Cerai Mati">Cerai Mati</option>
+          </select>
+        </fieldset>
+        <button type="submit" id="btn-save">Simpan Data</button>
+      </form>
+      <div id="table-wrapper">
+        <table id="resident-table">
+          <thead>
+            <tr>
+              <th>NIK</th>
+              <th>Nama</th>
+              <th>L/P</th>
+              <th>Telepon</th>
+              <th>TTL</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="resident-tbody"></tbody>
+        </table>
+      </div>
+    </main>
+    <footer id="main-footer">
+      <p>&copy; 2024 Jawara System</p>
+    </footer>
+    <script src="/assets/js/residents.js" type="module"></script>
+  </body>
+</html>

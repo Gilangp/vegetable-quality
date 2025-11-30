@@ -5,9 +5,9 @@ Controller untuk klasifikasi prediksi sayur.
 import os
 import tempfile
 import shutil
+from typing import Any
 from fastapi import HTTPException
 from services.vegetable_classifier import get_classifier
-
 
 class PredictionController:
     """Controller untuk handle business logic prediksi sayur."""
@@ -49,7 +49,7 @@ class PredictionController:
             )
 
     @staticmethod
-    def predict(file_contents: bytes, filename: str) -> dict:
+    def predict(file_contents: bytes, filename: str) -> dict[str, Any]:
         """
         Jalankan prediksi pada file gambar.
 

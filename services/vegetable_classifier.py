@@ -3,6 +3,7 @@ Layanan klasifikasi sayur menggunakan TFLite model.
 """
 
 import os
+from typing import Any
 import numpy as np
 import cv2
 import tensorflow as tf
@@ -81,7 +82,7 @@ class VegetableClassifier:
 
         return np.clip(img, 0, 1).astype(np.float32)
 
-    def predict(self, image_path: str) -> dict:
+    def predict(self, image_path: str) -> dict[str, Any]:
         """
         Prediksi keutuhan sayur dari gambar.
 

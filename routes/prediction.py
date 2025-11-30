@@ -1,15 +1,11 @@
-"""
-Routes untuk endpoint prediksi klasifikasi sayur.
-"""
-
+from typing import Any
+from app.controllers.prediction import PredictionController
 from fastapi import APIRouter, UploadFile, File
 from fastapi.responses import JSONResponse
-from app.controllers.prediction import PredictionController
 
-router = APIRouter(prefix="/api/v1", tags=["Prediction"])
+router = APIRouter(prefix="/predict", tags=["Prediction"])
 
-
-@router.post("/predict")
+@router.post("/")
 async def predict_vegetable(file: UploadFile = File(...)):
     """
     Endpoint untuk memprediksi keutuhan sayur dari gambar yang di-upload.
@@ -38,7 +34,7 @@ async def predict_vegetable(file: UploadFile = File(...)):
     ```
     """
     # Validasi tipe file
-    PredictionController.validate_file(file.content_type)
+    PredictionController.validate_file(str(file.content_type))
     
     # Baca file contents
     contents = await file.read()
@@ -47,6 +43,5 @@ async def predict_vegetable(file: UploadFile = File(...)):
     PredictionController.validate_file_size(len(contents))
     
     # Jalankan prediksi
-    result = PredictionController.predict(contents, file.filename)
-    
+    result: dict[str, Any] = PredictionController.predict(contents, str(file.filename))
     return JSONResponse(status_code=200, content=result)
