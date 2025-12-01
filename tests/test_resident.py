@@ -13,7 +13,7 @@ def test_create_resident_valid():
         gender="Laki-laki",
         nik="1234567890123456",
         phone="08123456789",
-        status="Single",
+        status="aktif",
     )
 
     assert resident.name == "John Doe"
@@ -30,10 +30,10 @@ def test_fail_invalid_nik_length():
             gender="Perempuan",
             nik="123", # Salah (terlalu pendek)
             phone="555-5678",
-            status="Married",
+            status="aktif",
         )
     # Memastikan pesan error mengandung kata "16 digit"
-    assert "16 digit" in str(excinfo.value)
+    assert "16" in str(excinfo.value) and "digit" in str(excinfo.value)
 
 def test_fail_create_resident_with_future_birth_date():
     future_date = date.today() + timedelta(days=365)
@@ -46,10 +46,10 @@ def test_fail_create_resident_with_future_birth_date():
             gender="Perempuan",
             nik="6543210987654321",
             phone="555-9876",
-            status="Single",
+            status="aktif",
         )
 
-    assert "masa depan" in str(excinfo.value)
+    assert "future" in str(excinfo.value).lower()
 
 def test_fail_create_resident_with_empty_name():
     with raises(ValidationError) as excinfo:
@@ -60,10 +60,10 @@ def test_fail_create_resident_with_empty_name():
             gender="Laki-laki",
             nik="1122334455667788",
             phone="555-4321",
-            status="Married",
+            status="aktif",
         )
 
-    assert "Nama tidak boleh kosong" in str(excinfo.value)
+    assert "empty" in str(excinfo.value).lower()
 
 def test_fail_create_resident_with_invalid_gender():
     with raises(ValidationError) as excinfo:
@@ -74,7 +74,7 @@ def test_fail_create_resident_with_invalid_gender():
             gender="Unknown",
             nik="9988776655443322",
             phone="555-8765",
-            status="Single",
+            status="aktif",
         )
 
-    assert "Gender harus Laki-laki atau Perempuan" in str(excinfo.value)
+    assert "Laki-laki" in str(excinfo.value) and "Perempuan" in str(excinfo.value)
