@@ -12,6 +12,10 @@
  * @property {string} [birth_date]
  * @property {string} [gender]
  * @property {string} [status]
+ * @property {string} [religion]
+ * @property {string} [blood_type]
+ * @property {string} [education]
+ * @property {string} [occupation]
  */
 
 class Residents {
@@ -69,8 +73,8 @@ class Residents {
 
     /** @type {Data} */
     const payload = {
-      family_id: parseInt(formData.get("family_id")?.toString() || "0"),
-      house_id: parseInt(formData.get("house_id")?.toString() || "0"),
+      family_id: 0,
+      house_id: 0,
       nik: formData.get("nik")?.toString() || "",
       name: formData.get("name")?.toString() || "",
       phone: formData.get("phone")?.toString() || "",
@@ -78,6 +82,10 @@ class Residents {
       birth_date: formData.get("birth_date")?.toString() || "",
       gender: formData.get("gender")?.toString() || "",
       status: formData.get("status")?.toString() || "",
+      religion: formData.get("religion")?.toString() || "",
+      blood_type: formData.get("blood_type")?.toString() || "",
+      education: formData.get("education")?.toString() || "",
+      occupation: formData.get("occupation")?.toString() || "",
     };
 
     await this.store(payload);
@@ -110,8 +118,8 @@ class Residents {
   async handleDeleteClick(e) {
     const target = /** @type {HTMLElement} */ (e.target);
 
-    if (target && target.classList.contains("btn-delete")) {
-      target.dataset.id && await this.delete(target.dataset.id);
+    if (target && target.classList.contains("btn-delete") && target.dataset.id) {
+      await this.delete(target.dataset.id);
     }
   }
 
@@ -133,6 +141,7 @@ class Residents {
   render() {
     if (!this.tableBody) return;
     this.tableBody.innerHTML = "";
+
     if (this.residents.length === 0) {
       this.tableBody.innerHTML = "<tr><td colspan='7' style='text-align:center'>Tidak ada data</td></tr>";
       return;

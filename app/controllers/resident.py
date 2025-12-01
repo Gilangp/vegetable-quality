@@ -1,7 +1,10 @@
 from app.models.residents import Residents
+from app.models.families import Families
+from app.models.houses import Houses
 from app.schemas.residents import ResidentCreate, ResidentUpdate
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+import random
 
 class Resident:
     def __init__(self, db: Session):
@@ -21,7 +24,23 @@ class Resident:
 
     def store(self, data: ResidentCreate):
         try:
-            new_resident = Residents(**data.model_dump())
+            resident_dict = data.model_dump()
+
+            if not resident_dict.get('family_id') or resident_dict.get('family_id') == 0:
+                available_families = self.db.query(Families.id).all()
+                if available_families:
+                    resident_dict['family_id'] = random.choice(available_families)[0]
+                else:
+                    resident_dict['family_id'] = 1
+
+            if not resident_dict.get('house_id') or resident_dict.get('house_id') == 0:
+                available_houses = self.db.query(Houses.id).all()
+                if available_houses:
+                    resident_dict['house_id'] = random.choice(available_houses)[0]
+                else:
+                    resident_dict['house_id'] = 1
+
+            new_resident = Residents(**resident_dict)
             self.db.add(new_resident)
             self.db.commit()
             self.db.refresh(new_resident)
@@ -39,8 +58,8 @@ class Resident:
             if not resident:
                 return None
 
-            update_data = data.model_dump(exclude_unset=True)
-            for key, value in update_data.items():setattr(resident, key, value)
+            for key, value in data.model_dump(exclude_unset=True).items():
+                setattr(resident, key, value)
 
             self.db.commit()
             self.db.refresh(resident)

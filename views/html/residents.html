@@ -21,26 +21,6 @@
         Kelola data kependudukan sesuai kartu keluarga dan domisili.
       </p>
       <form id="resident-form">
-        <fieldset class="form-group">
-          <label for="family_id">Family ID</label>
-          <input
-            type="number"
-            id="family_id"
-            name="family_id"
-            placeholder="Contoh: 1"
-            required
-          />
-        </fieldset>
-        <fieldset class="form-group">
-          <label for="house_id">House ID</label>
-          <input
-            type="number"
-            id="house_id"
-            name="house_id"
-            placeholder="Contoh: 1"
-            required
-          />
-        </fieldset>
         <hr id="form-divider" />
         <fieldset class="form-group">
           <label for="nik">NIK</label>
@@ -89,6 +69,48 @@
             <option value="Cerai Hidup">Cerai Hidup</option>
             <option value="Cerai Mati">Cerai Mati</option>
           </select>
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="religion">Agama</label>
+          <select id="religion" name="religion">
+            <option value="" disabled selected>Pilih Agama</option>
+            <option value="Islam">Islam</option>
+            <option value="Kristen">Kristen</option>
+            <option value="Katolik">Katolik</option>
+            <option value="Hindu">Hindu</option>
+            <option value="Buddha">Buddha</option>
+            <option value="Khonghucu">Khonghucu</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="blood_type">Golongan Darah</label>
+          <select id="blood_type" name="blood_type">
+            <option value="" disabled selected>Pilih Gol. Darah</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="AB">AB</option>
+            <option value="O">O</option>
+            <option value="-">-</option>
+          </select>
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="education">Pendidikan Terakhir</label>
+          <input
+            type="text"
+            id="education"
+            name="education"
+            placeholder="Contoh: S1 Teknik Informatika"
+          />
+        </fieldset>
+        <fieldset class="form-group">
+          <label for="occupation">Pekerjaan</label>
+          <input
+            type="text"
+            id="occupation"
+            name="occupation"
+            placeholder="Contoh: Wiraswasta"
+          />
         </fieldset>
         <button type="submit" id="btn-save">Simpan Data</button>
       </form>
