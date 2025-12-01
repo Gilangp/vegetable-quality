@@ -26,9 +26,13 @@ def upgrade() -> None:
         sa.Column("birth_place", sa.String(100), nullable=True),
         sa.Column("birth_date", sa.Date(), nullable=True),
         sa.Column("phone", sa.String(50), nullable=True),
+        sa.Column("religion", sa.String(50), nullable=True),
+        sa.Column("blood_type", sa.String(10), nullable=True),
+        sa.Column("education", sa.String(100), nullable=True),
+        sa.Column("occupation", sa.String(100), nullable=True),
         sa.Column("status", sa.String(50), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), server_default=sa.func.now(), nullable=True),
     )
 
 def downgrade() -> None:

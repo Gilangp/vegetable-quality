@@ -1,6 +1,6 @@
-from app.models.residents import Residents
-from app.models.families import Families
-from app.models.houses import Houses
+from app.models.resident_model import Resident as ResidentModel
+from app.models.family import Family
+from app.models.house import House
 from app.schemas.residents import ResidentCreate, ResidentUpdate
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -12,13 +12,13 @@ class Resident:
 
     def index(self, skip: int = 0, limit: int = 100):
         try:
-            return self.db.query(Residents).offset(skip).limit(limit).all()
+            return self.db.query(ResidentModel).offset(skip).limit(limit).all()
         except Exception as e:
             raise e
 
     def show(self, id: int):
         try:
-            return self.db.query(Residents).filter(Residents.id == id).first()
+            return self.db.query(ResidentModel).filter(ResidentModel.id == id).first()
         except Exception as e:
             raise e
 
@@ -27,20 +27,20 @@ class Resident:
             resident_dict = data.model_dump()
 
             if not resident_dict.get('family_id') or resident_dict.get('family_id') == 0:
-                available_families = self.db.query(Families.id).all()
+                available_families = self.db.query(Family.id).all()
                 if available_families:
                     resident_dict['family_id'] = random.choice(available_families)[0]
                 else:
                     resident_dict['family_id'] = 1
 
             if not resident_dict.get('house_id') or resident_dict.get('house_id') == 0:
-                available_houses = self.db.query(Houses.id).all()
+                available_houses = self.db.query(House.id).all()
                 if available_houses:
                     resident_dict['house_id'] = random.choice(available_houses)[0]
                 else:
                     resident_dict['house_id'] = 1
 
-            new_resident = Residents(**resident_dict)
+            new_resident = ResidentModel(**resident_dict)
             self.db.add(new_resident)
             self.db.commit()
             self.db.refresh(new_resident)
@@ -53,7 +53,7 @@ class Resident:
 
     def update(self, id: int, data: ResidentUpdate):
         try:
-            resident = self.db.query(Residents).filter(Residents.id == id).first()
+            resident = self.db.query(ResidentModel).filter(ResidentModel.id == id).first()
 
             if not resident:
                 return None
@@ -72,7 +72,7 @@ class Resident:
 
     def destroy(self, id: int):
         try:
-            resident = self.db.query(Residents).filter(Residents.id == id).first()
+            resident = self.db.query(ResidentModel).filter(ResidentModel.id == id).first()
             if resident:
                 self.db.delete(resident)
                 self.db.commit()

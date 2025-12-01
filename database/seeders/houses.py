@@ -1,4 +1,4 @@
-from app.models.houses import Houses
+from app.models.house import House
 from config.database import SessionLocal
 from faker import Faker
 from typing import List
@@ -8,18 +8,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 fake = Faker('id_ID')
 
-# HAPUS @staticmethod DISINI
 def houses():
     db = SessionLocal()
     try:
-        if db.query(Houses).first():
+        if db.query(House).first():
             print("⚠️ Houses table already seeded.")
             return
 
-        houses_data: List[Houses] = []
+        houses_data: List[House] = []
 
         for i in range(10):
-            house = Houses(
+            house = House(
                 id=i+1,
                 house_number=str(fake.random_number(digits=4, fix_len=True)),
                 address=fake.address(),

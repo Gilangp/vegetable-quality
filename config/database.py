@@ -14,11 +14,11 @@ IS_CI = os.getenv("CI", "false").lower() == "true"
 if IS_TESTING or IS_CI:
     # Use SQLite for testing/CI
     database_url = "sqlite:///:memory:"
-    print("🧪 Testing mode: Using SQLite in-memory database")
+    print("[TEST] Testing mode: Using SQLite in-memory database")
 else:
     # Use MySQL for local development
     database_url = os.getenv("DATABASE_URL")
-    print(f"✅ Development mode: Using {database_url}")
+    print(f"[OK] Development mode: Using {database_url}")
 
 def create_db_if_not_exists(url: str):
     """Create database if needed (skip for SQLite)"""
@@ -35,13 +35,13 @@ def create_db_if_not_exists(url: str):
             with temp_engine.connect() as conn:
                 conn.execute(text("COMMIT")) 
                 conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_url.database}"))
-                print(f"✅ MySQL database '{db_url.database}' siap digunakan.")
+                print(f"[OK] MySQL database '{db_url.database}' siap digunakan.")
         except Exception as e:
-            print(f"⚠️ Gagal cek database: {e}")
+            print(f"[WARN] Gagal cek database: {e}")
         finally:
             temp_engine.dispose()
     except Exception as e:
-        print(f"ℹ️ Skipping database creation: {e}")
+        print(f"[INFO] Skipping database creation: {e}")
 
 # Create DB if needed (skip for SQLite)
 if "sqlite" not in str(database_url).lower():
