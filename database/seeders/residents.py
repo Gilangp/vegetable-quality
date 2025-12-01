@@ -43,7 +43,11 @@ def residents():
                     birth_place=fake.city(),
                     birth_date=fake.date_of_birth(minimum_age=17, maximum_age=80),
                     gender=selected_gender,
-                    status=random.choice(["Menikah", "Belum Menikah", "Cerai Hidup", "Cerai Mati"])
+                    status=random.choice(["Menikah", "Belum Menikah", "Cerai Hidup", "Cerai Mati"]),
+                    religion=random.choice(["Islam", "Kristen Protestan", "Katolik", "Hindu", "Buddha", "Konghucu"]),
+                    blood_type=random.choice(["A", "B", "AB", "O"]),
+                    education=random.choice(["SD", "SMP", "SMA", "Diploma", "Sarjana", "Magister", "Doktor"]),
+                    occupation=fake.job()
                 )
 
                 residents_data.append(resident)

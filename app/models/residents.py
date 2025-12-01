@@ -14,6 +14,10 @@ class Residents(Base):
     birth_date = Column(Date, nullable=True)
     gender = Column(String(50), nullable=True)
     status = Column(String(50), nullable=True)
+    religion = Column(String(50), nullable=True)
+    blood_type = Column(String(5), nullable=True)
+    education = Column(String(100), nullable=True)
+    occupation = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
