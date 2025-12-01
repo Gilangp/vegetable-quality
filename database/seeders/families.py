@@ -1,4 +1,4 @@
-from app.models.families import Families 
+from app.models.family import Family
 from config.database import SessionLocal
 from faker import Faker
 from typing import List
@@ -11,14 +11,14 @@ fake = Faker('id_ID')
 def families():
     db = SessionLocal()
     try:
-        if db.query(Families).first():
+        if db.query(Family).first():
             print("⚠️ Families table already seeded.")
             return
 
-        families_data: List[Families] = []
+        families_data: List[Family] = []
 
         for i in range(10):
-            family = Families(
+            family = Family(
                 id=i+1,
                 family_number=random.randint(1000, 9999),
                 head_resident_id=None,

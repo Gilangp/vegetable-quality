@@ -1,6 +1,6 @@
-from app.models.families import Families
-from app.models.houses import Houses
-from app.models.residents import Residents
+from app.models.family import Family
+from app.models.house import House
+from app.models.resident_model import Resident
 from config.database import SessionLocal
 from faker import Faker
 from typing import List
@@ -15,15 +15,20 @@ fake = Faker('id_ID')
 def residents():
     db = SessionLocal()
     try:
-        if not db.query(Residents).first():
-            existing_family_ids = [f.id for f in db.query(Families.id).all()]
-            existing_house_ids = [h.id for h in db.query(Houses.id).all()]
+        if not db.query(Resident).first():
+            existing_family_ids = [f.id for f in db.query(Family.id).all()]
+            existing_house_ids = [h.id for h in db.query(House.id).all()]
 
             if not existing_family_ids or not existing_house_ids:
                 print("Error: Families or Houses table is empty.")
                 return
 
-            residents_data: List[Residents] = []
+            religions = ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Khonghucu"]
+            blood_types = ["A", "B", "AB", "O", "-"]
+            educations = ["SD", "SMP", "SMA", "D3", "S1", "S2", "S3"]
+            occupations = ["PNS", "Swasta", "Wiraswasta", "Petani", "Buruh", "Guru", "Dokter", "Pengusaha", "Tidak Bekerja"]
+
+            residents_data: List[Resident] = []
 
             for id in existing_family_ids:
                 gender_options = ["Laki-laki", "Perempuan"]
@@ -34,7 +39,7 @@ def residents():
                 else:
                     fake_name = fake.name_female()
 
-                resident = Residents(
+                resident = Resident(
                     family_id=id,
                     house_id=random.choice(existing_house_ids),
                     nik=str(fake.unique.random_number(digits=16, fix_len=True)),
@@ -43,11 +48,11 @@ def residents():
                     birth_place=fake.city(),
                     birth_date=fake.date_of_birth(minimum_age=17, maximum_age=80),
                     gender=selected_gender,
-                    status=random.choice(["Menikah", "Belum Menikah", "Cerai Hidup", "Cerai Mati"]),
-                    religion=random.choice(["Islam", "Kristen Protestan", "Katolik", "Hindu", "Buddha", "Konghucu"]),
-                    blood_type=random.choice(["A", "B", "AB", "O"]),
-                    education=random.choice(["SD", "SMP", "SMA", "Diploma", "Sarjana", "Magister", "Doktor"]),
-                    occupation=fake.job()
+                    religion=random.choice(religions),
+                    blood_type=random.choice(blood_types),
+                    education=random.choice(educations),
+                    occupation=random.choice(occupations),
+                    status=random.choice(["aktif", "pindah", "meninggal"])
                 )
 
                 residents_data.append(resident)
@@ -55,22 +60,22 @@ def residents():
             db.add_all(residents_data)
             db.commit()
             print(
-                f"✅ Successfully seeded {len(residents_data)} residents (1 per family).")
+                f"[OK] Successfully seeded {len(residents_data)} residents (1 per family).")
         else:
-            print("✅ Residents table already seeded.")
+            print("[OK] Residents table already seeded.")
 
-        all_families = db.query(Families).all()
+        all_families = db.query(Family).all()
         for family in all_families:
-            candidate = db.query(Residents).filter(Residents.family_id == family.id).first()
+            candidate = db.query(Resident).filter(Resident.family_id == family.id).first()
             if candidate:
                 family.head_resident_id = candidate.id
                 db.add(family)
 
         db.commit()
-        print("✅ Successfully updated ID of head residents for families.")
+        print("[OK] Successfully updated ID of head residents for families.")
 
     except Exception as e:
-        print(f"❌ Error seeding residents table: {e}")
+        print(f"[ERROR] Error seeding residents table: {e}")
         db.rollback()
     finally:
         db.close()

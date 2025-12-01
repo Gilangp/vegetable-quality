@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from routes import residents
+from routes import residents, auth
 import routes.prediction as prediction_router
 import os
 
@@ -34,5 +34,11 @@ async def vegetable_quality():
     """
     return FileResponse(os.path.join(VIEWS_DIRECTORY, "html/vegetable-quality.html"))
 
+app.include_router(auth.router)
 app.include_router(prediction_router.router)
 app.include_router(residents.router)
+
+if __name__ == "__main__":
+    import uvicorn
+    print("[INFO] Starting Uvicorn server on http://localhost:8000")
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,5 +1,5 @@
-from datetime import date
-from pydantic import BaseModel, field_validator
+from datetime import date, datetime
+from pydantic import BaseModel, field_validator, ConfigDict
 from typing import Optional
 
 class ResidentBase(BaseModel):
@@ -9,11 +9,11 @@ class ResidentBase(BaseModel):
     birth_place: Optional[str] = None
     birth_date: Optional[date] = None
     gender: Optional[str] = None
-    status: Optional[str] = None
     religion: Optional[str] = None
     blood_type: Optional[str] = None
     education: Optional[str] = None
     occupation: Optional[str] = None
+    status: Optional[str] = None
 
     @field_validator('nik')
     def validate_nik(cls, v: str) -> str:
@@ -45,16 +45,24 @@ class ResidentBase(BaseModel):
             raise ValueError('Phone cannot be empty')
         return v
     
-    @field_validator('status')
-    def validate_status(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None and v.strip() == "":
-            raise ValueError('Status cannot be empty')
+    @field_validator('religion')
+    def validate_religion(cls, v: Optional[str]) -> Optional[str]:
+        valid_religions = {"Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Khonghucu", "Lainnya"}
+        if v and v not in valid_religions:
+            raise ValueError(f'Religion must be one of {valid_religions}')
         return v
     
     @field_validator('blood_type')
     def validate_blood_type(cls, v: Optional[str]) -> Optional[str]:
-        if v and v not in {"A", "B", "AB", "O"}:
-            pass
+        valid_types = {"A", "B", "AB", "O", "-"}
+        if v and v not in valid_types:
+            raise ValueError(f'Blood type must be one of {valid_types}')
+        return v
+    
+    @field_validator('status')
+    def validate_status(cls, v: Optional[str]) -> Optional[str]:
+        if v and v not in {"aktif", "pindah", "meninggal"}:
+            raise ValueError('Status must be either "aktif", "pindah", or "meninggal"')
         return v
 
 class ResidentCreate(ResidentBase):
@@ -62,24 +70,22 @@ class ResidentCreate(ResidentBase):
     house_id: int
 
 class ResidentUpdate(BaseModel):
-    family_id: Optional[int] = None
-    house_id: Optional[int] = None
-    nik: Optional[str] = None
     name: Optional[str] = None
     phone: Optional[str] = None
     birth_place: Optional[str] = None
     birth_date: Optional[date] = None
     gender: Optional[str] = None
-    status: Optional[str] = None
     religion: Optional[str] = None
     blood_type: Optional[str] = None
     education: Optional[str] = None
     occupation: Optional[str] = None
+    status: Optional[str] = None
 
 class ResidentResponse(ResidentBase):
     id: int
     family_id: int
     house_id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
