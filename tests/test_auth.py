@@ -10,6 +10,7 @@ def test_register_schema_valid():
     """Test valid RegisterRequest schema"""
     request = RegisterRequest(
         nik="1234567890123456",
+        family_number="1234567890123456",
         name="John Doe",
         username="johndoe",
         email="john@example.com",
@@ -21,6 +22,7 @@ def test_register_schema_valid():
         phone="081234567890",
     )
     assert request.nik == "1234567890123456"
+    assert request.family_number == "1234567890123456"
     assert request.name == "John Doe"
 
 
@@ -29,6 +31,7 @@ def test_register_schema_invalid_nik_length():
     with raises(ValidationError) as excinfo:
         RegisterRequest(
             nik="123",
+            family_number="1234567890123456",
             name="Test User",
             username="testuser",
             email="test@example.com",

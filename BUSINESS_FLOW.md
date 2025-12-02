@@ -59,16 +59,17 @@ Response:
 ```json
 Request:
 {
+  "nik": "3271234567890123",
+  "family_number": "1234567890123456",
   "name": "Adi Wijaya",
+  "gender": "Laki-laki",
+  "birth_place": "Jakarta",
+  "birth_date": "1995-05-15",
   "username": "adi_wijaya",
   "email": "adi@example.com",
-  "password": "password123",
-  "password_confirm": "password123",
   "phone": "08987654321",
-  "nik": "3271234567890123",
-  "gender": "Laki-laki",
-  "birth_date": "1995-05-15",
-  "birth_place": "Jakarta"
+  "password": "password123",
+  "password_confirm": "password123"
 }
 
 Response:
@@ -86,8 +87,10 @@ Response:
 Status Code: 201 Created
 Note: 
   - User baru role = "warga" default
-  - Resident baru status = "pending" (menunggu approval)
-  - Family_id = temporary (akan di-assign saat approval)
+  - Resident baru status = "pending" (menunggu approval RT)
+  - Family otomatis di-create/di-assign dari family_number
+  - Jika family_number belum ada → create family baru
+  - Jika family_number sudah ada → assign ke family yang ada
   - ResidentApproval record dibuat otomatis (pending_approval)
 ```
 
@@ -158,15 +161,17 @@ Note: Logout di client-side (hapus token)
    PUT /resident-approvals/{id}
    {
      "status": "approved",
-     "family_id": 5,  # RT assign ke family yang benar
-     "note": "Data valid, assigned ke family Bpk. Joko"
+     "family_id": 5  # Optional - RT dapat assign ke family lain jika diperlukan
    }
    
    Sistem trigger:
+   ├─ Jika family_id disediakan: assign ke family tersebut
+   ├─ Jika family_id NOT disediakan: gunakan family dari family_number registrasi
+   │  ├─ Jika family sudah ada: assign ke family itu
+   │  ├─ Jika family baru (dari registrasi): set resident sebagai head_resident_id
    ├─ Update residents.status = "aktif"
-   ├─ Update residents.family_id = 5
-   ├─ Create activity_log (approval + family assignment)
-   └─ Notif ke warga: akun approved, sudah assign ke family
+   ├─ Create activity_log (approval)
+   └─ Notif ke warga: akun approved, assign ke family
 
 5. Jika RT reject
    PUT /resident-approvals/{id}

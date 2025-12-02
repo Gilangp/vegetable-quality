@@ -63,9 +63,14 @@ def update_resident_approval(
     Request body:
     {
       "status": "approved" | "rejected",
-      "note": "Optional note",
-      "family_id": 5  (required if status=approved)
+      "note": "Optional note (only for rejection)",
+      "family_id": 5  (optional - if not provided, will auto-create family + set as head_resident)
     }
+    
+    Flow:
+    1. If status="approved" + family_id provided: assign to existing family
+    2. If status="approved" + family_id NOT provided: auto-create family from family_number + set as head_resident
+    3. If status="rejected": reject registration
     """
     controller = ResidentApprovalController(db)
     

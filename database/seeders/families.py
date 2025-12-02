@@ -20,7 +20,7 @@ def families():
         for i in range(10):
             family = Family(
                 id=i+1,
-                family_number=random.randint(1000, 9999),
+                family_number=random.randint(1000000000000000, 9999999999999999),
                 head_resident_id=None,
                 created_at=fake.date_time_this_decade(),
                 updated_at=fake.date_time_this_decade()
