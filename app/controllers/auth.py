@@ -165,8 +165,15 @@ class AuthController:
             # 8. Create ResidentApproval record (pending_approval)
             approval = ResidentApproval(
                 resident_id=new_resident.id,
+                name=new_resident.name,
+                nik=new_resident.nik,
+                gender=new_resident.gender,
+                birth_place=new_resident.birth_place,
+                birth_date=str(new_resident.birth_date),
+                phone=new_resident.phone,
+                address=None,  # Will be filled from family/house later
                 status="pending_approval",
-                note=f"Self-registration via mobile app. Age: {age} tahun"
+                note=None
             )
             self.db.add(approval)
             

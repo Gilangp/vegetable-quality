@@ -15,7 +15,7 @@ class ResidentApproval(Base):
     birth_date = Column(String(50), nullable=True)
     phone = Column(String(20), nullable=True)
     address = Column(Text(), nullable=True)
-    status = Column(String(50), nullable=True, default="pending")
+    status = Column(String(50), nullable=True, default="pending_approval")
     note = Column(Text(), nullable=True)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
