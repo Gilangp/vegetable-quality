@@ -165,7 +165,6 @@ class AuthController:
             # 8. Create ResidentApproval record (pending_approval)
             approval = ResidentApproval(
                 resident_id=new_resident.id,
-                created_by=None,  # Self-registration
                 status="pending_approval",
                 note=f"Self-registration via mobile app. Age: {age} tahun"
             )
