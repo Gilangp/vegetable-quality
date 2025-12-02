@@ -15,3 +15,4 @@ class Family(Base):
     # Relationships
     residents = relationship("Resident", back_populates="family", foreign_keys="[Resident.family_id]")
     mutations = relationship("FamilyMutation", back_populates="family")
+    incomes = relationship("Income", back_populates="family")

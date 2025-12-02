@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from routes import residents, auth, resident_approval, family
+from routes import residents, auth, resident_approval, family, income
 import routes.prediction as prediction_router
 import os
 
@@ -39,6 +39,7 @@ app.include_router(prediction_router.router)
 app.include_router(residents.router)
 app.include_router(resident_approval.router)
 app.include_router(family.router)
+app.include_router(income.router)
 
 if __name__ == "__main__":
     import uvicorn
