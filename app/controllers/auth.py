@@ -17,7 +17,7 @@ class AuthController:
     
     def login(self, credentials: LoginRequest) -> TokenResponse:
         """
-        Login user dengan username dan password
+        Login user dengan email dan password
         - Check user exist
         - Check password correct
         - Jika warga (resident_id != NULL): 
@@ -26,20 +26,20 @@ class AuthController:
         - Jika admin/rt/rw/bendahara: bypass resident check
         - Generate JWT token
         """
-        # 1. Cari user by username
-        user = self.db.query(User).filter(User.username == credentials.username).first()
+        # 1. Cari user by email
+        user = self.db.query(User).filter(User.email == credentials.email).first()
         
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Username atau password salah"
+                detail="Email atau password salah"
             )
         
         # 2. Verify password
         if not self.auth_service.verify_password(credentials.password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Username atau password salah"
+                detail="Email atau password salah"
             )
         
         # 3. Check resident status (hanya untuk warga)

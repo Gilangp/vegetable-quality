@@ -11,7 +11,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/login", response_model=TokenResponse)
 def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     """
-    Login dengan username dan password
+    Login dengan email dan password
     
     Returns access_token untuk digunakan di request berikutnya
     """
