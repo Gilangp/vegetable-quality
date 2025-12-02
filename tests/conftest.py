@@ -19,6 +19,8 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
 def db_engine():
     """Create database engine"""
     engine = create_engine(DATABASE_URL, echo=False)
+    # Create all tables
+    Base.metadata.create_all(engine)
     return engine
 
 
