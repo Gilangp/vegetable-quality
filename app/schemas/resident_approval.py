@@ -19,19 +19,13 @@ class ResidentApprovalUpdate(BaseModel):
     """Update approval status (approve/reject by RT/RW)"""
     status: str  # approved or rejected
     note: Optional[str] = None
-    family_id: Optional[int] = None  # Required if status=approved
+    family_id: Optional[int] = None  # Optional - if not provided, will auto-create family from family_number
     
     @field_validator('status')
     def validate_status(cls, v: str) -> str:
         valid_statuses = {"approved", "rejected"}
         if v not in valid_statuses:
             raise ValueError(f'Status must be either "approved" or "rejected"')
-        return v
-    
-    @field_validator('family_id')
-    def validate_family_id(cls, v: Optional[int], info) -> Optional[int]:
-        if info.data.get('status') == 'approved' and not v:
-            raise ValueError('family_id is required when approving')
         return v
 
 

@@ -18,14 +18,15 @@ def test_approve_with_valid_data():
 
 
 def test_approve_without_family_id():
-    """Test approve without required family_id"""
-    with raises(ValidationError) as excinfo:
-        ResidentApprovalUpdate(
-            status="approved",
-            note="Data valid",
-            family_id=None
-        )
-    assert "family_id is required" in str(excinfo.value).lower()
+    """Test approve without family_id - now optional since auto-assignment"""
+    # family_id is now optional - will use family from registration
+    request = ResidentApprovalUpdate(
+        status="approved",
+        note="Data valid",
+        family_id=None
+    )
+    assert request.status == "approved"
+    assert request.family_id is None
 
 
 def test_reject_with_note():
@@ -62,26 +63,15 @@ def test_invalid_status():
 
 
 def test_approve_with_family_id_zero():
-    """Test approve with family_id=0 should still fail"""
-    with raises(ValidationError) as excinfo:
-        ResidentApprovalUpdate(
-            status="approved",
-            note="Test",
-            family_id=0
-        )
-    # family_id 0 is falsy but should pass validator - actual family check is in controller
-    # This test verifies schema only allows required field, not actual family existence
-
-
-def test_reject_with_family_id_ignored():
-    """Test that family_id is ignored when rejecting"""
+    """Test approve with family_id=0 - schema allows it, controller validates"""
+    # family_id is optional, 0 is allowed at schema level
+    # Controller will validate that family actually exists
     request = ResidentApprovalUpdate(
-        status="rejected",
-        note="Rejected",
-        family_id=5  # This should be ignored
+        status="approved",
+        note="Test",
+        family_id=0
     )
-    assert request.status == "rejected"
-    assert request.family_id == 5  # Still stored but not used
+    assert request.family_id == 0
 
 
 def test_reject_with_family_id_ignored():

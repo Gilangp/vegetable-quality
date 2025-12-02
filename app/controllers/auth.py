@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.resident_model import Resident
 from app.models.resident_approval import ResidentApproval
+from app.models.family import Family
 from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserResponse, CurrentUserResponse
 from app.services.auth_service import AuthService
 from fastapi import HTTPException, status
@@ -90,6 +91,7 @@ class AuthController:
         - Hanya untuk >= 17 tahun
         - Anak (< 17) REJECT
         - Check NIK unique
+        - Find or create Family by family_number
         - Create Resident (pending approval)
         - Create User (linked ke resident)
         - Create ResidentApproval record
@@ -129,12 +131,22 @@ class AuthController:
                     detail="Email sudah terdaftar"
                 )
         
-        # 5. Hash password
+        # 5. Find or create Family by family_number
+        family = self.db.query(Family).filter(Family.family_number == data.family_number).first()
+        if not family:
+            # Create new family if not exists
+            family = Family(
+                family_number=data.family_number,
+                head_resident_id=None  # Will be updated later
+            )
+            self.db.add(family)
+            self.db.flush()
+        
+        # 6. Hash password
         hashed_password = self.auth_service.hash_password(data.password)
         
         try:
-            # 6. Create Resident (status "aktif" untuk self-register)
-            # Note: Untuk approval workflow, RT akan ubah status ke "pindah"/"meninggal" jika diperlukan
+            # 7. Create Resident (status "pending" untuk self-register, akan jadi "aktif" setelah RT approve)
             new_resident = Resident(
                 nik=data.nik,
                 name=data.name,
@@ -142,14 +154,14 @@ class AuthController:
                 birth_place=data.birth_place,
                 birth_date=data.birth_date,
                 phone=data.phone,
-                status="aktif",  # Default aktif untuk self-register
-                family_id=1,  # Temporary, will be updated by RT/Admin
+                status="pending",  # Pending approval dari RT
+                family_id=family.id,  # Link to family by family_number
                 house_id=1    # Temporary, will be updated by RT/Admin
             )
             self.db.add(new_resident)
             self.db.flush()  # Get resident.id without commit
             
-            # 7. Create User (linked to resident)
+            # 8. Create User (linked to resident)
             new_user = User(
                 name=data.name,
                 username=data.username,
@@ -162,7 +174,7 @@ class AuthController:
             self.db.add(new_user)
             self.db.flush()
             
-            # 8. Create ResidentApproval record (pending_approval)
+            # 9. Create ResidentApproval record (pending_approval)
             approval = ResidentApproval(
                 resident_id=new_resident.id,
                 name=new_resident.name,

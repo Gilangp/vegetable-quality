@@ -3,6 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
 from app.models.resident_approval import ResidentApproval
 from app.models.resident_model import Resident
+from app.models.family import Family
 from app.models.user import User
 from app.schemas.resident_approval import ResidentApprovalUpdate, ResidentApprovalResponse
 from datetime import datetime
@@ -53,9 +54,12 @@ class ResidentApprovalController:
         """
         Approve resident registration
         - Check approval exists
-        - Check family exists
-        - Update resident: status = "aktif", family_id
-        - Update approval: status = "approved", approved_by, note
+        - Get resident data (sudah punya family_id dari registrasi)
+        - If family_id provided: reassign ke family lain (jika RT ingin ubah)
+        - If family_id not provided: gunakan family_id dari registrasi
+        - Set resident as head_resident jika family belum punya head
+        - Update resident: status = "aktif"
+        - Update approval: status = "approved", approved_by
         """
         try:
             # 1. Get approval record
@@ -75,18 +79,7 @@ class ResidentApprovalController:
                     detail=f"Hanya approval pending_approval yang bisa di-proses. Status: {approval.status}"
                 )
             
-            # 2. Check family exists
-            family = self.db.query(Resident).filter(
-                Resident.family_id == data.family_id
-            ).first()
-            
-            if not family:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Family dengan ID {data.family_id} tidak ditemukan"
-                )
-            
-            # 3. Update resident
+            # 2. Get resident
             resident = self.db.query(Resident).filter(
                 Resident.id == approval.resident_id
             ).first()
@@ -97,17 +90,43 @@ class ResidentApprovalController:
                     detail="Resident data tidak ditemukan"
                 )
             
+            # 3. Determine family_id
+            # Jika RT provide family_id: gunakan itu (reassign)
+            # Jika tidak: gunakan family_id dari registrasi (sudah auto-assigned)
+            if data.family_id:
+                # Verify family exists dan reassign
+                family = self.db.query(Family).filter(Family.id == data.family_id).first()
+                if not family:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Family dengan ID {data.family_id} tidak ditemukan"
+                    )
+                resident.family_id = data.family_id
+                family_id = data.family_id
+            else:
+                # Use family_id dari registrasi
+                if not resident.family_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Resident tidak punya family_id. Silakan hubungi admin."
+                    )
+                family_id = resident.family_id
+            
+            # 4. Update resident status
             resident.status = "aktif"
-            resident.family_id = data.family_id
             resident.updated_at = datetime.now()
             
-            # 4. Update approval record
+            # 5. Set resident as head_resident if family doesn't have one
+            family = self.db.query(Family).filter(Family.id == family_id).first()
+            if family and not family.head_resident_id:
+                family.head_resident_id = resident.id
+            
+            # 6. Update approval record
             approval.status = "approved"
             approval.approved_by = current_user.id
-            approval.note = None  # Note is only for rejection reasons
             approval.updated_at = datetime.now()
             
-            # 5. Commit
+            # 7. Commit
             self.db.commit()
             self.db.refresh(approval)
             

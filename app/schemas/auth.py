@@ -26,16 +26,22 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 class RegisterRequest(BaseModel):
+    # Identity Numbers
+    nik: str  # Nomor Induk Kependudukan (16 digits)
+    family_number: str  # Nomor Kartu Keluarga (16 digits)
+    
+    # Personal Data
     name: str
+    gender: str  # Laki-laki, Perempuan
+    birth_place: Optional[str] = None
+    birth_date: date  # YYYY-MM-DD
+    
+    # Account Information
     username: str
     email: str
+    phone: Optional[str] = None
     password: str
     password_confirm: str
-    phone: Optional[str] = None
-    nik: str  # Nomor Induk Kependudukan (16 digits)
-    gender: str  # Laki-laki, Perempuan
-    birth_date: date  # YYYY-MM-DD
-    birth_place: Optional[str] = None
     
     @field_validator('nik')
     def validate_nik(cls, v: str) -> str:
@@ -43,6 +49,14 @@ class RegisterRequest(BaseModel):
             raise ValueError('NIK harus 16 digit')
         if not v.isdigit():
             raise ValueError('NIK hanya boleh berisi angka')
+        return v
+    
+    @field_validator('family_number')
+    def validate_family_number(cls, v: str) -> str:
+        if len(v) != 16:
+            raise ValueError('Nomor Kartu Keluarga harus 16 digit')
+        if not v.isdigit():
+            raise ValueError('Nomor Kartu Keluarga hanya boleh berisi angka')
         return v
     
     @field_validator('gender')

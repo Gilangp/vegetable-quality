@@ -20,7 +20,7 @@ def houses():
         for i in range(10):
             house = House(
                 id=i+1,
-                house_number=str(fake.random_number(digits=4, fix_len=True)),
+                house_number=str(random.randint(1, 99)),
                 address=fake.address(),
                 rt=str(random.randint(1, 10)),
                 rw=str(random.randint(1, 10)),
