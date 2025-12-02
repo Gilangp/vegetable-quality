@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from routes import residents, auth
+from routes import residents, auth, resident_approval
 import routes.prediction as prediction_router
 import os
 
@@ -37,6 +37,7 @@ async def vegetable_quality():
 app.include_router(auth.router)
 app.include_router(prediction_router.router)
 app.include_router(residents.router)
+app.include_router(resident_approval.router)
 
 if __name__ == "__main__":
     import uvicorn
