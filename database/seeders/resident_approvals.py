@@ -24,13 +24,13 @@ def resident_approvals():
             print("❌ Error: No ketua_rt users found.")
             existing_users = db.query(User).all()
 
-        statuses = ["pending", "approved", "rejected"]
+        statuses = ["pending_approval", "approved", "rejected"]
         approvals_data: List[ResidentApproval] = []
 
         for i in range(15):
             status = random.choice(statuses)
             approval = ResidentApproval(
-                resident_id=None if status == "pending" else random.randint(1, 5),
+                resident_id=None if status == "pending_approval" else random.randint(1, 5),
                 name=fake.name(),
                 nik=str(fake.unique.random_number(digits=16, fix_len=True)),
                 gender=random.choice(["Laki-laki", "Perempuan"]),
@@ -40,7 +40,7 @@ def resident_approvals():
                 address=fake.address(),
                 status=status,
                 note=fake.sentence() if status == "rejected" else None,
-                approved_by=random.choice(existing_users).id if status != "pending" else None,
+                approved_by=random.choice(existing_users).id if status != "pending_approval" else None,
                 created_at=fake.date_time_this_month()
             )
             approvals_data.append(approval)
