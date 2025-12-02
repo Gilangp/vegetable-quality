@@ -74,6 +74,17 @@ def test_approve_with_family_id_zero():
 
 
 def test_reject_with_family_id_ignored():
+    """Test that family_id is ignored when rejecting"""
+    request = ResidentApprovalUpdate(
+        status="rejected",
+        note="Rejected",
+        family_id=5  # This should be ignored
+    )
+    assert request.status == "rejected"
+    assert request.family_id == 5  # Still stored but not used
+
+
+def test_reject_with_family_id_ignored():
     """Test reject ignores family_id"""
     request = ResidentApprovalUpdate(
         status="rejected",

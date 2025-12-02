@@ -50,7 +50,7 @@ class ResidentApprovalResponse(BaseModel):
     note: Optional[str]
     approved_by: Optional[int]
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime]
     
     class Config:
         from_attributes = True
@@ -66,7 +66,7 @@ class ResidentApprovalListResponse(BaseModel):
     status: str
     note: Optional[str]
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime]
     
     class Config:
         from_attributes = True

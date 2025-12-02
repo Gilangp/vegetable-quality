@@ -104,7 +104,7 @@ class ResidentApprovalController:
             # 4. Update approval record
             approval.status = "approved"
             approval.approved_by = current_user.id
-            approval.note = data.note or f"Approved by {current_user.username}"
+            approval.note = None  # Note is only for rejection reasons
             approval.updated_at = datetime.now()
             
             # 5. Commit
@@ -168,7 +168,7 @@ class ResidentApprovalController:
             # 3. Update approval record
             approval.status = "rejected"
             approval.approved_by = current_user.id
-            approval.note = data.note or f"Rejected by {current_user.username}"
+            approval.note = data.note  # Note field is for rejection reason
             approval.updated_at = datetime.now()
             
             # 4. Commit
