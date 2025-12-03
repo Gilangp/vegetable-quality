@@ -18,7 +18,10 @@ class Resident:
 
     def index(self, skip: int = 0, limit: int = 100):
         try:
-            return self.db.query(ResidentModel).offset(skip).limit(limit).all()
+            # Only return residents with final status (not pending/rejected)
+            return self.db.query(ResidentModel).filter(
+                ResidentModel.status.in_(["aktif", "pindah", "meninggal"])
+            ).offset(skip).limit(limit).all()
         except Exception as e:
             raise e
 

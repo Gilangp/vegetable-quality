@@ -151,6 +151,7 @@ class ResidentApprovalController:
         - Check approval exists
         - Update resident: status = "ditolak"
         - Update approval: status = "rejected", approved_by, note
+        - Cleanup: Delete family jika tidak ada resident aktif lain
         """
         try:
             # 1. Get approval record
@@ -181,6 +182,9 @@ class ResidentApprovalController:
                     detail="Resident data tidak ditemukan"
                 )
             
+            # Store family_id sebelum update resident
+            family_id = resident.family_id
+            
             resident.status = "ditolak"
             resident.updated_at = datetime.now()
             
@@ -190,7 +194,22 @@ class ResidentApprovalController:
             approval.note = data.note  # Note field is for rejection reason
             approval.updated_at = datetime.now()
             
-            # 4. Commit
+            # 4. Cleanup: Check family apakah masih punya resident aktif
+            if family_id:
+                active_residents = self.db.query(Resident).filter(
+                    Resident.family_id == family_id,
+                    Resident.status == "aktif"
+                ).count()
+                
+                # Jika tidak ada resident aktif di family ini → hapus family
+                if active_residents == 0:
+                    family = self.db.query(Family).filter(
+                        Family.id == family_id
+                    ).first()
+                    if family:
+                        self.db.delete(family)
+            
+            # 5. Commit
             self.db.commit()
             self.db.refresh(approval)
             

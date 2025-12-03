@@ -61,8 +61,8 @@ class ResidentBase(BaseModel):
     
     @field_validator('status')
     def validate_status(cls, v: Optional[str]) -> Optional[str]:
-        if v and v not in {"aktif", "pindah", "meninggal"}:
-            raise ValueError('Status must be either "aktif", "pindah", or "meninggal"')
+        if v and v not in {"aktif", "pindah", "meninggal", "ditolak", "pending"}:
+            raise ValueError('Status must be either "aktif", "pindah", "meninggal", "ditolak", or "pending"')
         return v
 
 class ResidentCreate(ResidentBase):
