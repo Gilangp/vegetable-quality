@@ -238,21 +238,20 @@ class FamilyController:
                     detail="Anggota tidak ditemukan di keluarga ini"
                 )
             
-            # Remove from family (set to NULL or default family?)
-            # For now, we'll reject if it's the head of family
+            # Removing a resident by setting family_id to NULL is not supported
+            # because resident.family_id is non-nullable. To move a resident to
+            # another family, call `add_resident_to_family` with the target
+            # family id. Reject removal requests here.
             if family.head_resident_id == resident_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Tidak dapat menghapus kepala keluarga. Ubah kepala keluarga terlebih dahulu"
                 )
-            
-            resident.family_id = None
-            resident.updated_at = datetime.now()
-            
-            self.db.commit()
-            self.db.refresh(resident)
-            
-            return {"message": f"Anggota {resident.name} berhasil dihapus dari keluarga"}
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Operasi hapus anggota (mengosongkan family_id) tidak didukung. Gunakan endpoint pemindahan anggota (add_resident_to_family) untuk memindahkan ke keluarga lain."
+            )
         except HTTPException:
             self.db.rollback()
             raise

@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, field_validator, ConfigDict
+from pydantic import BaseModel, field_validator, ConfigDict, Field
 from typing import Optional, List
 
 
@@ -38,9 +38,10 @@ class ResidentInFamily(BaseModel):
     nik: str
     gender: Optional[str] = None
     status: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
+    house_id: Optional[int] = None
+    house: Optional[dict] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FamilyResponse(FamilyBase):
@@ -48,12 +49,12 @@ class FamilyResponse(FamilyBase):
     id: int
     family_number: str
     head_resident_id: Optional[int]
-    created_at: datetime
-    updated_at: datetime
-    residents: Optional[List[ResidentInFamily]] = []
-    
-    class Config:
-        from_attributes = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    residents: List[ResidentInFamily] = Field(default_factory=list)
+    head_resident: Optional[ResidentInFamily] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FamilyListResponse(BaseModel):
@@ -61,9 +62,15 @@ class FamilyListResponse(BaseModel):
     id: int
     family_number: str
     head_resident_id: Optional[int]
+    head_resident: Optional[ResidentInFamily] = None
     resident_count: int = 0
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MessageResponse(BaseModel):
+    """Standard message response"""
+    message: str
+    model_config = ConfigDict(from_attributes=True)
