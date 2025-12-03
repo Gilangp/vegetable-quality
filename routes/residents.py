@@ -60,6 +60,19 @@ def store(
     """
     return ResidentController(db).store(data)
 
+# Duplicate route untuk handle request tanpa trailing slash jika diperlukan
+@router.post("", response_model=ResidentResponse, status_code=status.HTTP_201_CREATED)
+def store_no_slash(
+    data: ResidentCreate, 
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin", "ketua_rt", "ketua_rw"))
+):
+    """
+    Create new resident (no trailing slash)
+    Require: admin, ketua_rt, or ketua_rw role
+    """
+    return ResidentController(db).store(data)
+
 @router.put("/{id}", response_model=ResidentResponse)
 def update(
     id: int, 

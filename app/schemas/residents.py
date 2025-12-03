@@ -81,11 +81,29 @@ class ResidentUpdate(BaseModel):
     occupation: Optional[str] = None
     status: Optional[str] = None
 
+class UserResponse(BaseModel):
+    id: int
+    email: Optional[str] = None
+    name: Optional[str] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class HouseResponse(BaseModel):
+    id: int
+    address: Optional[str] = None
+    house_number: Optional[str] = None
+    rt: Optional[str] = None
+    rw: Optional[str] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class ResidentResponse(ResidentBase):
     id: int
     family_id: int
     house_id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    user: Optional[UserResponse] = None
+    house: Optional[HouseResponse] = None
 
     model_config = ConfigDict(from_attributes=True)

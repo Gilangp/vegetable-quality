@@ -1,6 +1,12 @@
 from app.models.resident_model import Resident as ResidentModel
 from app.models.family import Family
 from app.models.house import House
+from app.models.income_bill import IncomeBill
+from app.models.marketplace_product import MarketplaceProduct
+from app.models.marketplace_order import MarketplaceOrder
+from app.models.resident_message import ResidentMessage
+from app.models.resident_approval import ResidentApproval
+from app.models.verification_result import VerificationResult
 from app.schemas.residents import ResidentCreate, ResidentUpdate
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -74,6 +80,20 @@ class Resident:
         try:
             resident = self.db.query(ResidentModel).filter(ResidentModel.id == id).first()
             if resident:
+                # Delete related records first to avoid foreign key constraint issues
+                # Delete income bills
+                self.db.query(IncomeBill).filter(IncomeBill.resident_id == id).delete()
+                # Delete marketplace products
+                self.db.query(MarketplaceProduct).filter(MarketplaceProduct.resident_id == id).delete()
+                # Delete marketplace orders as buyer
+                self.db.query(MarketplaceOrder).filter(MarketplaceOrder.buyer_id == id).delete()
+                # Delete resident messages
+                self.db.query(ResidentMessage).filter(ResidentMessage.resident_id == id).delete()
+                # Delete resident approvals
+                self.db.query(ResidentApproval).filter(ResidentApproval.resident_id == id).delete()
+                # Delete verification results
+                self.db.query(VerificationResult).filter(VerificationResult.resident_id == id).delete()
+                # Finally delete the resident
                 self.db.delete(resident)
                 self.db.commit()
                 return True
