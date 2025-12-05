@@ -25,6 +25,7 @@ class HouseUpdate(BaseModel):
     address: Optional[str] = None
     rt: Optional[str] = None
     rw: Optional[str] = None
+    status: Optional[str] = None
 
 
 class HouseResponse(BaseModel):
@@ -33,6 +34,7 @@ class HouseResponse(BaseModel):
     address: Optional[str] = None
     rt: Optional[str] = None
     rw: Optional[str] = None
+    status: Optional[str] = None
     resident_count: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, field_validator, ConfigDict, Field
 from typing import Optional, List
+from app.schemas.house import HouseResponse
 
 
 class FamilyBase(BaseModel):
@@ -39,7 +40,7 @@ class ResidentInFamily(BaseModel):
     gender: Optional[str] = None
     status: Optional[str] = None
     house_id: Optional[int] = None
-    house: Optional[dict] = None
+    house: Optional[HouseResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -11,6 +11,7 @@ class House(Base):
     address = Column(Text(), nullable=True)
     rt = Column(String(10), nullable=True)
     rw = Column(String(10), nullable=True)
+    status = Column(String(20), nullable=False, server_default='available')
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
     

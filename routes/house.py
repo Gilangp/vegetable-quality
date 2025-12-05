@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.controllers.house import HouseController
 from app.controllers.dependencies import get_db, get_current_user, require_role
 from app.schemas.house import HouseCreate, HouseResponse, HouseUpdate
+from app.schemas.residents import ResidentResponse
 from app.models.user import User
 
 
@@ -25,6 +26,7 @@ def list_houses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), 
             "address": h.address,
             "rt": h.rt,
             "rw": h.rw,
+            "status": getattr(h, 'status', 'available'),
             "resident_count": len(h.residents) if h.residents else 0,
             "created_at": h.created_at,
             "updated_at": h.updated_at,
@@ -103,3 +105,9 @@ def update_house(
 def delete_house(house_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin", "ketua_rt"))):
     controller = HouseController(db)
     return controller.delete_house(house_id)
+
+
+@router.post("/{house_id}/assign/{resident_id}", response_model=ResidentResponse)
+def assign_house(house_id: int, resident_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin", "ketua_rt"))):
+    controller = HouseController(db)
+    return controller.assign_resident_to_house(house_id, resident_id)

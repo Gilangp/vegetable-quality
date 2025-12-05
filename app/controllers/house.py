@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
 from app.models.house import House as HouseModel
+from app.models.resident_model import Resident as ResidentModel
 from app.schemas.house import HouseCreate, HouseUpdate
 from datetime import datetime
 
@@ -90,6 +91,86 @@ class HouseController:
             self.db.delete(house)
             self.db.commit()
             return {"message": "House deleted"}
+        except HTTPException:
+            self.db.rollback()
+            raise
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Database error: {str(e)}")
+        except Exception as e:
+            self.db.rollback()
+            raise e
+
+    def assign_resident_to_house(self, house_id: int, resident_id: int):
+        try:
+            # Lock the target house row to avoid race conditions
+            house = (
+                self.db.query(HouseModel)
+                .filter(HouseModel.id == house_id)
+                .with_for_update()
+                .first()
+            )
+            if not house:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="House not found")
+
+            resident = (
+                self.db.query(ResidentModel)
+                .filter(ResidentModel.id == resident_id)
+                .first()
+            )
+            if not resident:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resident not found")
+
+            old_house_id = resident.house_id
+
+            # Determine if assignment is allowed
+            if house.status == 'available':
+                # Assign and mark house occupied
+                # Check previous house occupancy to possibly free it
+                prev_count = 0
+                if old_house_id and old_house_id != house.id:
+                    prev_count = self.db.query(ResidentModel).filter(ResidentModel.house_id == old_house_id).count()
+
+                resident.house_id = house.id
+                house.status = 'occupied'
+
+                # If previous house will become empty, mark it available
+                if old_house_id and old_house_id != house.id and prev_count <= 1:
+                    prev_house = (
+                        self.db.query(HouseModel).filter(HouseModel.id == old_house_id).with_for_update().first()
+                    )
+                    if prev_house:
+                        prev_house.status = 'available'
+
+                self.db.commit()
+                self.db.refresh(resident)
+                return resident
+
+            elif house.status == 'occupied':
+                # Allow only if resident belongs to same family as existing occupants
+                occupant_family_ids = set([r.family_id for r in house.residents if r.family_id is not None])
+                if resident.family_id in occupant_family_ids:
+                    prev_count = 0
+                    if old_house_id and old_house_id != house.id:
+                        prev_count = self.db.query(ResidentModel).filter(ResidentModel.house_id == old_house_id).count()
+
+                    resident.house_id = house.id
+
+                    if old_house_id and old_house_id != house.id and prev_count <= 1:
+                        prev_house = (
+                            self.db.query(HouseModel).filter(HouseModel.id == old_house_id).with_for_update().first()
+                        )
+                        if prev_house:
+                            prev_house.status = 'available'
+
+                    self.db.commit()
+                    self.db.refresh(resident)
+                    return resident
+                else:
+                    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="House is occupied by another family")
+            else:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid house status")
+
         except HTTPException:
             self.db.rollback()
             raise
