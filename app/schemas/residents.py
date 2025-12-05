@@ -101,7 +101,7 @@ class HouseResponse(BaseModel):
 
 class ResidentResponse(ResidentBase):
     id: int
-    family_id: int
+    family_id: Optional[int] = None
     house_id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

@@ -170,11 +170,14 @@ def test_add_and_remove_member_flow():
         with pytest.raises(HTTPException):
             controller.remove_resident_from_family(family1.id, resident.id)
 
-        # unset head; removal by setting NULL is not supported and should raise
+        # unset head; removal should unassign resident from the family
         family1.head_resident_id = None
         db.commit()
-        with pytest.raises(HTTPException):
-            controller.remove_resident_from_family(family1.id, resident.id)
+        resp = controller.remove_resident_from_family(family1.id, resident.id)
+        assert isinstance(resp, dict)
+        # verify resident is unassigned
+        r2 = db.query(Resident).filter(Resident.id == resident.id).first()
+        assert r2.family_id is None
 
     finally:
         db.close()

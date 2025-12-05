@@ -23,8 +23,9 @@ def residents_page():
 
 @router.get("/data", response_model=List[ResidentResponse])
 def get(
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = 0,
+    limit: int = 100,
+    q: str | None = None,
     db: Session = Depends(get_db),
     current_user = Depends(get_optional_current_user)
 ):
@@ -32,7 +33,7 @@ def get(
     Get list of residents
     Optional authentication for filtering based on user role
     """
-    return ResidentController(db).index(skip=skip, limit=limit)
+    return ResidentController(db).index(skip=skip, limit=limit, q=q)
 
 @router.get("/{id}", response_model=ResidentResponse)
 async def show(

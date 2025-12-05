@@ -237,21 +237,22 @@ class FamilyController:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Anggota tidak ditemukan di keluarga ini"
                 )
-            
-            # Removing a resident by setting family_id to NULL is not supported
-            # because resident.family_id is non-nullable. To move a resident to
-            # another family, call `add_resident_to_family` with the target
-            # family id. Reject removal requests here.
+
+            # Do not allow removing the head resident — they must be changed first
             if family.head_resident_id == resident_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Tidak dapat menghapus kepala keluarga. Ubah kepala keluarga terlebih dahulu"
                 )
 
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Operasi hapus anggota (mengosongkan family_id) tidak didukung. Gunakan endpoint pemindahan anggota (add_resident_to_family) untuk memindahkan ke keluarga lain."
-            )
+            # Unassign the resident from the family (set family_id to NULL)
+            resident.family_id = None
+            resident.updated_at = datetime.now()
+            self.db.commit()
+            self.db.refresh(resident)
+
+            # Return the updated resident so callers can render the new state
+            return resident
         except HTTPException:
             self.db.rollback()
             raise

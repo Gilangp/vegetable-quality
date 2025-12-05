@@ -112,24 +112,73 @@ def add_resident_to_family(
 ):
     """Add resident to family (requires role admin/ketua_rt/ketua_rw)."""
     controller = FamilyController(db)
-    return controller.add_resident_to_family(family_id, resident_id)
+    resident = controller.add_resident_to_family(family_id, resident_id)
+
+    # Convert related house to plain dict to satisfy response_model expectations
+    house_obj = None
+    if getattr(resident, 'house', None) is not None:
+        h = resident.house
+        house_obj = {
+            'id': getattr(h, 'id', None),
+            'house_number': getattr(h, 'house_number', None),
+            'address': getattr(h, 'address', None),
+            'rt': getattr(h, 'rt', None),
+            'rw': getattr(h, 'rw', None),
+            'created_at': getattr(h, 'created_at', None),
+            'updated_at': getattr(h, 'updated_at', None),
+        }
+
+    response = {
+        'id': resident.id,
+        'name': resident.name,
+        'nik': getattr(resident, 'nik', None),
+        'gender': getattr(resident, 'gender', None),
+        'status': getattr(resident, 'status', None),
+        'house_id': getattr(resident, 'house_id', None),
+        'house': house_obj,
+    }
+
+    return response
 
 
-@router.delete("/{family_id}/members/{resident_id}", response_model=MessageResponse)
+@router.delete("/{family_id}/members/{resident_id}", response_model=ResidentInFamily)
 def remove_resident_from_family(
     family_id: int,
     resident_id: int,
     current_user: User = Depends(require_role("admin", "ketua_rt", "ketua_rw")),
     db: Session = Depends(get_db),
 ):
-    """Remove resident from family.
-
-    Note: removal by setting `family_id` to NULL is not supported by the
-    application. This endpoint will reject such requests and instruct clients
-    to use the transfer (add) endpoint to move residents between families.
+    """Remove resident from family by setting `family_id` to NULL and
+    return the updated resident payload so the client can refresh its UI.
     """
     controller = FamilyController(db)
-    return controller.remove_resident_from_family(family_id, resident_id)
+    resident = controller.remove_resident_from_family(family_id, resident_id)
+
+    # Convert related house to plain dict to satisfy response_model expectations
+    house_obj = None
+    if getattr(resident, 'house', None) is not None:
+        h = resident.house
+        house_obj = {
+            'id': getattr(h, 'id', None),
+            'house_number': getattr(h, 'house_number', None),
+            'address': getattr(h, 'address', None),
+            'rt': getattr(h, 'rt', None),
+            'rw': getattr(h, 'rw', None),
+            'created_at': getattr(h, 'created_at', None),
+            'updated_at': getattr(h, 'updated_at', None),
+        }
+
+    response = {
+        'id': resident.id,
+        'name': resident.name,
+        'nik': getattr(resident, 'nik', None),
+        'gender': getattr(resident, 'gender', None),
+        'status': getattr(resident, 'status', None),
+        'house_id': getattr(resident, 'house_id', None),
+        'house': house_obj,
+    }
+
+    return response
 
 
 @router.post("/public", response_model=FamilyResponse, status_code=status.HTTP_201_CREATED)

@@ -16,9 +16,17 @@ class Resident:
     def __init__(self, db: Session):
         self.db = db
 
-    def index(self, skip: int = 0, limit: int = 100):
+    def index(self, skip: int = 0, limit: int = 100, q: str | None = None):
         try:
-            return self.db.query(ResidentModel).offset(skip).limit(limit).all()
+            qry = self.db.query(ResidentModel)
+            if q:
+                # basic search on name or nik
+                likeq = f"%{q}%"
+                qry = qry.filter(
+                    (ResidentModel.name.ilike(likeq)) |
+                    (ResidentModel.nik.ilike(likeq))
+                )
+            return qry.offset(skip).limit(limit).all()
         except Exception as e:
             raise e
 

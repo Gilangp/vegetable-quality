@@ -7,7 +7,7 @@ class Resident(Base):
     __tablename__ = "residents"
     
     id = Column(Integer, primary_key=True, index=True)
-    family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=True)
     house_id = Column(Integer, ForeignKey("houses.id"), nullable=False)
     nik = Column(String(50), nullable=True, unique=True, index=True)
     name = Column(String(100), nullable=True)
