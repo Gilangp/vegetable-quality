@@ -263,3 +263,66 @@ class AuthController:
             expires_in=token_data["expires_in"],
             user=UserResponse.model_validate(user)
         )
+
+    def update_profile(self, current_user, data):
+        """
+        Update user profile
+        """
+        user = self.db.query(User).filter(User.id == current_user.id).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User tidak ditemukan"
+            )
+        
+        # Update fields if provided
+        if data.name is not None:
+            user.name = data.name
+        if data.email is not None:
+            # Check if email already exists for another user
+            existing_email = self.db.query(User).filter(
+                User.email == data.email,
+                User.id != current_user.id
+            ).first()
+            if existing_email:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email sudah digunakan"
+                )
+            user.email = data.email
+        if data.phone is not None:
+            user.phone = data.phone
+        
+        self.db.commit()
+        self.db.refresh(user)
+        
+        return UserResponse.model_validate(user)
+
+    def change_password(self, current_user, current_password: str, new_password: str):
+        """
+        Change user password
+        """
+        user = self.db.query(User).filter(User.id == current_user.id).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User tidak ditemukan"
+            )
+        
+        # Verify current password
+        if not self.auth_service.verify_password(current_password, user.password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Kata sandi saat ini salah"
+            )
+        
+        # Hash and set new password
+        user.password = self.auth_service.hash_password(new_password)
+        
+        self.db.commit()
+        self.db.refresh(user)
+        
+        return {"message": "Kata sandi berhasil diubah"}
+

@@ -92,6 +92,14 @@ class RegisterRequest(BaseModel):
             raise ValueError('Passwords do not match')
         return v
 
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
 class CurrentUserResponse(BaseModel):
     id: int
     resident_id: Optional[int] = None

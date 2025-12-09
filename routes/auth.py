@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, CurrentUserResponse, UserResponse
+from pydantic import BaseModel
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, CurrentUserResponse, UserResponse, ProfileUpdateRequest
 from app.controllers.auth import AuthController
 from app.controllers.dependencies import get_current_user, get_optional_current_user
 from config.database import get_db
 from typing import Optional
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -56,6 +61,39 @@ def refresh_token(
     token = authorization.replace("Bearer ", "")
     controller = AuthController(db)
     return controller.refresh_token(token)
+
+@router.put("/profile", response_model=UserResponse)
+def update_profile(
+    data: ProfileUpdateRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update user profile
+    
+    Require authentication
+    """
+    controller = AuthController(db)
+    return controller.update_profile(current_user, data)
+
+@router.post("/change-password")
+def change_password(
+    data: ChangePasswordRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Change user password
+    
+    Require authentication
+    Body: 
+    {
+        "current_password": "string",
+        "new_password": "string"
+    }
+    """
+    controller = AuthController(db)
+    return controller.change_password(current_user, data.current_password, data.new_password)
 
 @router.post("/logout")
 def logout(current_user = Depends(get_current_user)):
