@@ -251,8 +251,8 @@ class FamilyController:
             self.db.commit()
             self.db.refresh(resident)
 
-            # Return the updated resident so callers can render the new state
-            return resident
+            # Return success message
+            return {"message": "Anggota berhasil dihapus dari keluarga", "resident_id": resident.id}
         except HTTPException:
             self.db.rollback()
             raise

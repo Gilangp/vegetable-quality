@@ -4,6 +4,7 @@ from app.models.house import House as HouseModel
 from app.models.resident_model import Resident as ResidentModel
 from app.models.family import Family as FamilyModel
 from fastapi import HTTPException
+import uuid
 
 
 def create_house(db, status='available'):
@@ -15,7 +16,7 @@ def create_house(db, status='available'):
 
 
 def create_family(db):
-    f = FamilyModel(family_number='FAM1')
+    f = FamilyModel(family_number=f'FAM{str(uuid.uuid4())[:8]}')
     db.add(f)
     db.commit()
     db.refresh(f)
