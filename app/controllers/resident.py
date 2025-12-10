@@ -19,6 +19,14 @@ class Resident:
     def index(self, skip: int = 0, limit: int = 100, q: str | None = None):
         try:
             qry = self.db.query(ResidentModel)
+            
+            # Filter only residents with approval status = "approved"
+            qry = qry.filter(
+                ResidentModel.approvals.any(
+                    ResidentApproval.status == "approved"
+                )
+            )
+            
             if q:
                 # basic search on name or nik
                 likeq = f"%{q}%"
@@ -56,13 +64,30 @@ class Resident:
 
             new_resident = ResidentModel(**resident_dict)
             self.db.add(new_resident)
+            self.db.flush()  # Flush to get the ID before commit
             self.db.commit()
             self.db.refresh(new_resident)
+            
+            # Auto-approve resident yang baru dibuat (status = "approved")
+            # Only create approval if resident creation was successful
+            try:
+                approval = ResidentApproval(
+                    resident_id=new_resident.id,
+                    status="approved",
+                    note="Auto-approved on creation"
+                )
+                self.db.add(approval)
+                self.db.commit()
+            except Exception as approval_error:
+                self.db.rollback()
+                raise Exception(f"Failed to create approval for resident {new_resident.id}: {approval_error}")
+            
             return new_resident
         except SQLAlchemyError as e:
             self.db.rollback()
             raise e
         except Exception as e:
+            self.db.rollback()
             raise e
 
     def update(self, id: int, data: ResidentUpdate):

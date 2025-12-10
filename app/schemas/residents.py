@@ -99,6 +99,14 @@ class HouseResponse(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
+class ResidentApprovalResponse(BaseModel):
+    id: int
+    resident_id: Optional[int] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class ResidentResponse(ResidentBase):
     id: int
     family_id: Optional[int] = None
@@ -107,5 +115,6 @@ class ResidentResponse(ResidentBase):
     updated_at: Optional[datetime] = None
     user: Optional[UserResponse] = None
     house: Optional[HouseResponse] = None
+    approvals: Optional[list[ResidentApprovalResponse]] = None
 
     model_config = ConfigDict(from_attributes=True)

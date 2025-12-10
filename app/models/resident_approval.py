@@ -7,7 +7,7 @@ class ResidentApproval(Base):
     __tablename__ = "resident_approvals"
     
     id = Column(Integer, primary_key=True, index=True)
-    resident_id = Column(Integer, ForeignKey("residents.id"), nullable=True)
+    resident_id = Column(Integer, ForeignKey("residents.id"), nullable=False)
     name = Column(String(100), nullable=True)
     nik = Column(String(50), nullable=True)
     gender = Column(String(10), nullable=True)

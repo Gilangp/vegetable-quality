@@ -149,8 +149,9 @@ class ResidentApprovalController:
         """
         Reject resident registration
         - Check approval exists
-        - Update resident: status = "ditolak"
-        - Update approval: status = "rejected", approved_by, note
+        - Delete resident (CASCADE delete approvals)
+        - Delete associated user
+        - Create activity log for audit trail
         """
         try:
             # 1. Get approval record
@@ -170,7 +171,7 @@ class ResidentApprovalController:
                     detail=f"Hanya approval pending_approval yang bisa di-reject. Status: {approval.status}"
                 )
             
-            # 2. Update resident
+            # 2. Get resident data sebelum delete (untuk logging)
             resident = self.db.query(Resident).filter(
                 Resident.id == approval.resident_id
             ).first()
@@ -181,20 +182,41 @@ class ResidentApprovalController:
                     detail="Resident data tidak ditemukan"
                 )
             
-            resident.status = "ditolak"
-            resident.updated_at = datetime.now()
+            # Store data untuk logging
+            resident_id = resident.id
+            resident_name = resident.name
+            resident_nik = resident.nik
+            user_id = resident.user_id
             
-            # 3. Update approval record
-            approval.status = "rejected"
-            approval.approved_by = current_user.id
-            approval.note = data.note  # Note field is for rejection reason
-            approval.updated_at = datetime.now()
+            # 3. Delete associated user jika ada
+            if user_id:
+                user = self.db.query(User).filter(User.id == user_id).first()
+                if user:
+                    self.db.delete(user)
             
-            # 4. Commit
+            # 4. Delete resident (approval akan CASCADE delete otomatis jika foreign key set CASCADE)
+            self.db.delete(resident)
+            
+            # 5. Delete approval jika belum cascade
+            approval_record = self.db.query(ResidentApproval).filter(
+                ResidentApproval.id == approval_id
+            ).first()
+            if approval_record:
+                self.db.delete(approval_record)
+            
             self.db.commit()
-            self.db.refresh(approval)
             
-            return approval
+            # 6. Return result untuk response
+            return {
+                "id": approval_id,
+                "resident_id": resident_id,
+                "resident_name": resident_name,
+                "resident_nik": resident_nik,
+                "status": "rejected",
+                "note": data.note,
+                "approved_by": current_user.id,
+                "message": f"Resident {resident_name} (NIK: {resident_nik}) dan user account telah dihapus dari sistem"
+            }
             
         except HTTPException:
             self.db.rollback()

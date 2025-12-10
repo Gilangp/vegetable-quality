@@ -133,84 +133,261 @@ Note: Logout di client-side (hapus token)
 **Flow Pendaftaran Mandiri (Self-Registration via Mobile App):**
 ```
 1. Warga isi form → POST /auth/register
-   ├─ name, username, email, password, phone
-   ├─ nik, gender, birth_date, birth_place
-   ├─ role otomatis = "warga"
-   └─ status = "pending" (belum approved)
-   
-   NOTE: Hanya untuk >= 17 tahun
-   Anak (< 17) TIDAK bisa self-register
-   Hanya bisa di-input admin/RT
+   {
+     "nik": "3271234567890123",
+     "family_number": "KEL-001",  # Nomor keluarga dari KK
+     "name": "Adi Wijaya",
+     "gender": "Laki-laki",
+     "birth_date": "1995-05-15",
+     "birth_place": "Jakarta",
+     "username": "adi_wijaya",
+     "email": "adi@example.com",
+     "phone": "08987654321",
+     "password": "password123",
+     "password_confirm": "password123"
+   }
 
-2. Sistem trigger:
+2. Sistem validasi:
    ├─ Check birth_date: apakah >= 17 tahun?
    ├─ JIKA < 17 tahun: REJECT dengan pesan "Anak-anak tidak bisa self-register"
-   ├─ JIKA >= 17 tahun:
-   │  ├─ Create Resident (status = "pending", family_id = temporary)
-   │  ├─ Create User (linked ke resident, role = "warga")
-   │  ├─ Create ResidentApproval (status = "pending_approval")
-   │  └─ note = "self-registration via mobile"
+   ├─ JIKA >= 17 tahun: Lanjut ke step 3
+   └─ Check: NIK sudah terdaftar? → REJECT jika sudah ada
+
+3. Sistem trigger (Self-Registration Flow):
+   ├─ Create Resident:
+   │  ├─ status = "pending" ← PENDING (belum approve RT)
+   │  ├─ family_id = temporary (assign nanti saat approval)
+   │  ├─ nik, name, gender, birth_date, phone diisi dari form
+   │  └─ ID auto-increment (misal ID = 50)
+   │
+   ├─ Create User (linked ke resident):
+   │  ├─ username = adi_wijaya
+   │  ├─ password = hash(password123)
+   │  ├─ email = adi@example.com
+   │  ├─ role = "warga"
+   │  ├─ resident_id = 50
+   │  └─ active = true (tapi belum bisa login sampai resident diapprove)
+   │
+   ├─ Create ResidentApproval:
+   │  ├─ resident_id = 50
+   │  ├─ status = "pending_approval" ← PENDING, bukan "approved"!
+   │  ├─ note = "Self-registration via mobile app"
+   │  └─ Simpan data family_number dari registrasi
+   │
+   ├─ Create activity_log (self-registration action)
    └─ Notif ke RT/RW: ada warga baru perlu approval
 
-3. RT/RW review & assign ke family
+4. Response ke warga:
+   {
+     "id": 101,
+     "name": "Adi Wijaya",
+     "username": "adi_wijaya",
+     "email": "adi@example.com",
+     "resident_id": 50,
+     "message": "Akun berhasil dibuat. Silakan menunggu persetujuan dari RT/RW untuk dapat login dan menggunakan aplikasi sepenuhnya."
+   }
+
+5. Warga coba login (SEBELUM approval):
+   POST /auth/login
+   {
+     "username": "adi_wijaya",
+     "password": "password123"
+   }
+   
+   Response: ❌ BLOCKED
+   {
+     "error": "Akun Anda belum disetujui oleh RT/RW. Silakan tunggu persetujuan sebelum dapat login."
+   }
+   
+   Implementasi: Check di login endpoint
+   ├─ user_id = valid
+   ├─ password = correct
+   ├─ Cek: resident.status == "aktif"?
+   └─ JIKA status != "aktif": REJECT login
+
+6. RT/RW review pending approvals:
    GET /resident-approvals?status=pending_approval
    
-   RT/RW lihat data warga (NIK, nama, umur, alamat)
+   RT/RW lihat:
+   ├─ Nama: Adi Wijaya
+   ├─ NIK: 3271234567890123
+   ├─ Umur: 30 tahun (dari birth_date)
+   ├─ Family Number: KEL-001
+   ├─ Status Approval: Menunggu Persetujuan
+   └─ Verifikasi via KK (Kartu Keluarga)
 
-4. RT/RW approve & assign family
+7. RT/RW approve & assign family:
    PUT /resident-approvals/{id}
    {
      "status": "approved",
-     "family_id": 5  # Optional - RT dapat assign ke family lain jika diperlukan
+     "family_id": 5,  # RT assign ke family existing atau create baru
+     "note": "Data valid, sudah cek KK. Assigned ke family Bpk. Joko"
    }
    
    Sistem trigger:
-   ├─ Jika family_id disediakan: assign ke family tersebut
-   ├─ Jika family_id NOT disediakan: gunakan family dari family_number registrasi
-   │  ├─ Jika family sudah ada: assign ke family itu
-   │  ├─ Jika family baru (dari registrasi): set resident sebagai head_resident_id
-   ├─ Update residents.status = "aktif"
-   ├─ Create activity_log (approval)
-   └─ Notif ke warga: akun approved, assign ke family
-
-5. Jika RT reject
-   PUT /resident-approvals/{id}
-   {
-     "status": "rejected",
-     "note": "NIK sudah terdaftar / data tidak sesuai"
-   }
-   
-   Sistem:
-   ├─ Update residents.status = "ditolak"
-   ├─ Create activity_log
-   └─ Notif ke warga: akun ditolak + alasan
-```
-   PUT /resident-approvals/{id}
-   {
-     "status": "approved",
-     "note": "Data valid, assigned ke family Bpk. Joko"
-   }
-   
-   Request body di body (separate):
-   - family_id: 5 (assign family)
-   
-   Sistem trigger:
-   ├─ Update residents.status = "aktif"
-   ├─ Update residents.family_id = 5 (dari parameter)
+   ├─ Update residents.status = "aktif" ← SEKARANG BISA LOGIN!
+   ├─ Update residents.family_id = 5 (assign ke family)
+   ├─ Update resident_approvals.status = "approved"
    ├─ Create activity_log (approval + family assignment)
-   └─ Notif ke warga: akun approved, sudah assign ke family
+   └─ Notif ke warga: "Akun Anda sudah disetujui! Silakan login untuk mulai menggunakan aplikasi."
 
-5. Jika RT reject
+8. Setelah approval - Warga coba login lagi:
+   POST /auth/login
+   {
+     "username": "adi_wijaya",
+     "password": "password123"
+   }
+   
+   Response: ✅ SUCCESS
+   {
+     "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+     "token_type": "bearer",
+     "expires_in": 1800,
+     "user": {
+       "id": 101,
+       "name": "Adi Wijaya",
+       "username": "adi_wijaya",
+       "resident_id": 50,
+       "role": "warga"
+     }
+   }
+
+9. Jika RT reject:
    PUT /resident-approvals/{id}
    {
      "status": "rejected",
-     "note": "NIK sudah terdaftar / data tidak sesuai"
+     "note": "NIK tidak valid / data tidak sesuai KK"
    }
    
-   Sistem:
-   ├─ Update residents.status = "ditolak"
-   ├─ Create activity_log
-   └─ Notif ke warga: akun ditolak + alasan
+   Sistem trigger:
+   ├─ Delete dari resident_approvals (record ini)
+   ├─ Delete dari residents (hapus resident record)
+   ├─ Delete dari users (hapus user account)
+   ├─ Create activity_log (rejection + deletion action)
+   └─ Notif ke warga: "Akun Anda ditolak dan dihapus. Alasan: {note}. Silakan hubungi RT untuk informasi lebih lanjut."
+
+10. Warga yang di-reject coba login:
+    POST /auth/login
+    {
+      "username": "adi_wijaya",
+      "password": "password123"
+    }
+    
+    Response: ❌ BLOCKED
+    {
+      "error": "Username atau password salah"
+    }
+    
+    (User sudah tidak ada di sistem)
+
+11. Opsi untuk warga yang di-reject:
+    
+    a) ✅ BISA re-register dengan NIK sama
+       └─ Karena semua data sudah dihapus (NIK tidak unique lagi)
+       └─ Warga bisa register ulang dari awal
+       └─ Baru di-approve/reject oleh RT lagi
+    
+    b) Hubungi RT untuk clarify data (optional)
+       └─ Sebelum register ulang lagi
+       └─ Fix masalahnya (misal NIK yang benar)
+
+12. Flow Register Ulang:
+    POST /auth/register
+    {
+      "nik": "3271234567890123",  # NIK yang sama, tapi sekarang bisa (sudah dihapus)
+      "name": "Adi Wijaya",
+      "username": "adi_wijaya",     # Username sama juga boleh (sudah dihapus)
+      ...
+    }
+    
+    Sistem:
+    ├─ NIK tidak duplicate (user lama sudah dihapus)
+    ├─ Create Resident baru (ID baru, misal ID = 51)
+    ├─ Create User baru (ID baru)
+    ├─ Create ResidentApproval baru (status = "pending_approval")
+    ├─ Create activity_log (self-registration baru)
+    └─ Notif ke RT: ada warga baru (lagi) perlu approval
+
+**REJECT FLOW DIAGRAM (dengan deletion):**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Warga Register via /auth/register                           │
+│ ├─ Resident: status = "pending", ID = 50                    │
+│ ├─ User: username = adi_wijaya, ID = 101                    │
+│ └─ Approval: status = "pending_approval"                    │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ├─ RT APPROVE
+                       │  ├─ residents.status = "aktif"
+                       │  ├─ approvals.status = "approved"
+                       │  ├─ family_id assigned
+                       │  └─ Warga bisa login ✅
+                       │
+                       └─ RT REJECT
+                          ├─ DELETE residents WHERE id = 50
+                          ├─ DELETE users WHERE id = 101
+                          ├─ DELETE resident_approvals WHERE resident_id = 50
+                          ├─ Create activity_log (reject + deletion)
+                          │
+                          └─ Warga Options:
+                             ├─ A: Hubungi RT (optional clarify)
+                             └─ B: Register ulang dengan NIK/username sama
+                                 ├─ NIK sudah tidak unique (user lama dihapus)
+                                 ├─ Create Resident baru (ID = 51)
+                                 ├─ Create User baru (ID = 102)
+                                 └─ Waiting approval lagi ⏳
+```
+
+**DATA YANG DIHAPUS SAAT REJECT:**
+```sql
+-- Sebelum reject:
+residents:     id=50, nik=..., name=..., status="pending"
+users:         id=101, username=..., email=...
+approvals:     id=(some), resident_id=50, status="pending_approval"
+
+-- Sesudah reject (DELETE):
+residents:     (HAPUS semua record id=50)
+users:         (HAPUS semua record id=101)
+approvals:     (HAPUS semua record resident_id=50)
+
+-- Sisa di activity_logs (untuk audit):
+activity_logs: action="reject_warga", 
+               actor_id=RT_user_id, 
+               target_id=50, 
+               description="Rejected: NIK tidak valid"
+```
+
+**KEY POINT:**
+- ✅ Data langsung dihapus saat reject (clean slate)
+- ✅ NIK & username bisa dipakai lagi (unique constraint cleared)
+- ✅ Warga bisa register ulang dari awal
+- ✅ Activity log tetap tercatat (untuk audit trail)
+- ✅ Tidak ada "ditolak" status di database (hanya di log)
+- ✅ Simple & clean, tidak ada zombie data
+
+**KEY DIFFERENCES - Admin Add vs Self-Register:**
+```
+┌──────────────────────┬─────────────────────────┬──────────────────────────┐
+│ Aspek                │ Admin Add (/residents)  │ Self-Register (/register)│
+├──────────────────────┼─────────────────────────┼──────────────────────────┤
+│ Approval Status      │ "approved" (auto)       │ "pending_approval"       │
+│ Status Warga         │ "aktif"                 │ "pending"                │
+│ User Created         │ Yes (auto)              │ Yes (user input)         │
+│ Password             │ Generated random        │ User set sendiri         │
+│ Bisa Login           │ Ya (langsung)           │ Tidak (tunggu approval)  │
+│ Family Assignment    │ Admin assign saat add   │ RT assign saat approval  │
+│ Workflow             │ Create → Approval ✓     │ Create → Pending → Approval
+│ User Role            │ "warga" atau custom     │ "warga" (default)        │
+│ Activity Flow        │ Skip review step        │ RT harus review & approve
+└──────────────────────┴─────────────────────────┴──────────────────────────┘
+```
+
+**IMPLEMENTATION CHECKLIST:**
+✅ Backend auto-approve untuk admin add
+🔄 Backend login gate: check resident.status == "aktif"
+🔄 Self-register endpoint: POST /auth/register
+🔄 Approval workflow: RT review & approve/reject
+🔄 Notification system: notif saat status changed
 ```
 
 **Flow Input Admin/RT (Direct Input dari Desktop):**
@@ -228,8 +405,10 @@ Note: Logout di client-side (hapus token)
      "status": "aktif"  # Langsung aktif, tidak perlu approval
    }
 
-2. Sistem trigger:
+2. Sistem trigger (NEW - Auto Approve):
    ├─ Create Resident (status = "aktif", langsung terdaftar)
+   ├─ Auto-Create ResidentApproval (status = "approved") ← NEW!
+   │  └─ note = "Auto-approved on creation"
    ├─ Check birth_date: apakah < 17 tahun?
    │
    ├─ JIKA >= 17 tahun (DEWASA):
@@ -257,6 +436,12 @@ Note: Logout di client-side (hapus token)
    - TIDAK punya akun
    - TIDAK bisa login
    - Data hanya untuk laporan kependudukan
+
+**CATATAN PERUBAHAN:**
+- ✅ SEBELUM: Approval dibuat dengan status = "pending_approval" (perlu approval)
+- ✅ SEKARANG: Approval otomatis dibuat dengan status = "approved" (langsung aktif)
+- ✅ Resident langsung tampil di list tanpa perlu approval admin lagi
+- ✅ Backend ensure resident SELALU dibuat sebelum approval (transaction-safe)
 ```
 
 ### 2.2 Verifikasi Warga
