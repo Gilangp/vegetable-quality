@@ -16,4 +16,3 @@ class Family(Base):
     residents = relationship("Resident", back_populates="family", foreign_keys="[Resident.family_id]")
     head_resident = relationship("Resident", foreign_keys=[head_resident_id], uselist=False)
     mutations = relationship("FamilyMutation", back_populates="family")
-    incomes = relationship("Income", back_populates="family")

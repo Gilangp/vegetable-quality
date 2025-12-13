@@ -54,11 +54,10 @@ class ResidentApprovalController:
         """
         Approve resident registration
         - Check approval exists
-        - Get resident data (sudah punya family_id dari registrasi)
-        - If family_id provided: reassign ke family lain (jika RT ingin ubah)
-        - If family_id not provided: gunakan family_id dari registrasi
+        - Get resident data
+        - Cari/create family berdasarkan family_number dari approval
         - Set resident as head_resident jika family belum punya head
-        - Update resident: status = "aktif"
+        - Update resident: status = "aktif", family_id
         - Update approval: status = "approved", approved_by
         """
         try:
@@ -90,29 +89,31 @@ class ResidentApprovalController:
                     detail="Resident data tidak ditemukan"
                 )
             
-            # 3. Determine family_id
-            # Jika RT provide family_id: gunakan itu (reassign)
-            # Jika tidak: gunakan family_id dari registrasi (sudah auto-assigned)
-            if data.family_id:
-                # Verify family exists dan reassign
-                family = self.db.query(Family).filter(Family.id == data.family_id).first()
+            # 3. Find or create family by family_number
+            # Jika approval punya family_number, cari/buat family dengan number itu
+            if approval.family_number:
+                family = self.db.query(Family).filter(
+                    Family.family_number == approval.family_number
+                ).first()
+                
                 if not family:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Family dengan ID {data.family_id} tidak ditemukan"
+                    # Create new family jika belum ada
+                    family = Family(
+                        family_number=approval.family_number,
+                        head_resident_id=None
                     )
-                resident.family_id = data.family_id
-                family_id = data.family_id
+                    self.db.add(family)
+                    self.db.flush()
+                
+                family_id = family.id
             else:
-                # Use family_id dari registrasi
-                if not resident.family_id:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Resident tidak punya family_id. Silakan hubungi admin."
-                    )
-                family_id = resident.family_id
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Family number tidak ditemukan di approval record"
+                )
             
-            # 4. Update resident status
+            # 4. Assign resident ke family
+            resident.family_id = family_id
             resident.status = "aktif"
             resident.updated_at = datetime.now()
             
@@ -186,13 +187,12 @@ class ResidentApprovalController:
             resident_id = resident.id
             resident_name = resident.name
             resident_nik = resident.nik
-            user_id = resident.user_id
             
-            # 3. Delete associated user jika ada
-            if user_id:
-                user = self.db.query(User).filter(User.id == user_id).first()
-                if user:
-                    self.db.delete(user)
+            # 3. Find and delete associated user jika ada
+            user = self.db.query(User).filter(User.resident_id == resident_id).first()
+            user_id = user.id if user else None
+            if user:
+                self.db.delete(user)
             
             # 4. Delete resident (approval akan CASCADE delete otomatis jika foreign key set CASCADE)
             self.db.delete(resident)
@@ -210,12 +210,13 @@ class ResidentApprovalController:
             return {
                 "id": approval_id,
                 "resident_id": resident_id,
-                "resident_name": resident_name,
-                "resident_nik": resident_nik,
+                "name": resident_name,
+                "nik": resident_nik,
                 "status": "rejected",
                 "note": data.note,
                 "approved_by": current_user.id,
-                "message": f"Resident {resident_name} (NIK: {resident_nik}) dan user account telah dihapus dari sistem"
+                "created_at": approval.created_at,
+                "updated_at": approval.updated_at,
             }
             
         except HTTPException:

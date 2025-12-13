@@ -18,7 +18,7 @@ def upgrade() -> None:
     op.create_table(
         "residents",
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
-        sa.Column("family_id", sa.Integer(), sa.ForeignKey("families.id"), nullable=False),
+        sa.Column("family_id", sa.Integer(), sa.ForeignKey("families.id"), nullable=True),
         sa.Column("house_id", sa.Integer(), sa.ForeignKey("houses.id"), nullable=False),
         sa.Column("nik", sa.String(50), nullable=True),
         sa.Column("name", sa.String(100), nullable=True),

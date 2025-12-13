@@ -15,6 +15,7 @@ class ResidentApproval(Base):
     birth_date = Column(String(50), nullable=True)
     phone = Column(String(20), nullable=True)
     address = Column(Text(), nullable=True)
+    family_number = Column(String(50), nullable=True)  # Untuk auto-assign ke family saat approval
     status = Column(String(50), nullable=True, default="pending_approval")
     note = Column(Text(), nullable=True)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)

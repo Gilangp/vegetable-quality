@@ -131,22 +131,11 @@ class AuthController:
                     detail="Email sudah terdaftar"
                 )
         
-        # 5. Find or create Family by family_number
-        family = self.db.query(Family).filter(Family.family_number == data.family_number).first()
-        if not family:
-            # Create new family if not exists
-            family = Family(
-                family_number=data.family_number,
-                head_resident_id=None  # Will be updated later
-            )
-            self.db.add(family)
-            self.db.flush()
-        
-        # 6. Hash password
+        # 5. Hash password (jangan handle family dulu, tunggu approval)
         hashed_password = self.auth_service.hash_password(data.password)
         
         try:
-            # 7. Create Resident (status "pending" untuk self-register, akan jadi "aktif" setelah RT approve)
+            # 6. Create Resident (status "pending", family_id = NULL sampai approval)
             new_resident = Resident(
                 nik=data.nik,
                 name=data.name,
@@ -155,13 +144,13 @@ class AuthController:
                 birth_date=data.birth_date,
                 phone=data.phone,
                 status="pending",  # Pending approval dari RT
-                family_id=family.id,  # Link to family by family_number
+                family_id=None,  # BELUM assign, tunggu approval
                 house_id=1    # Temporary, will be updated by RT/Admin
             )
             self.db.add(new_resident)
             self.db.flush()  # Get resident.id without commit
             
-            # 8. Create User (linked to resident)
+            # 7. Create User (linked to resident)
             new_user = User(
                 name=data.name,
                 username=data.username,
@@ -174,16 +163,18 @@ class AuthController:
             self.db.add(new_user)
             self.db.flush()
             
-            # 9. Create ResidentApproval record (pending_approval)
+            # 8. Create ResidentApproval record (pending_approval)
+            # Simpan family_number di approval untuk di-proses saat RT approve
             approval = ResidentApproval(
                 resident_id=new_resident.id,
                 name=new_resident.name,
                 nik=new_resident.nik,
                 gender=new_resident.gender,
                 birth_place=new_resident.birth_place,
-                birth_date=str(new_resident.birth_date),
+                birth_date=new_resident.birth_date,  # Store as date object
                 phone=new_resident.phone,
-                address=None,  # Will be filled from family/house later
+                address=None,
+                family_number=data.family_number,  # Simpan untuk approval flow
                 status="pending_approval",
                 note=None
             )

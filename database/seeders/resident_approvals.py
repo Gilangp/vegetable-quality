@@ -1,5 +1,5 @@
 from app.models.resident_approval import ResidentApproval
-from app.models.user import User
+from app.models.resident_model import Resident
 from config.database import SessionLocal
 from faker import Faker
 from typing import List
@@ -18,30 +18,31 @@ def resident_approvals():
             print("⚠️ Resident approvals table already seeded.")
             return
 
-        existing_users = db.query(User).filter(User.role == "ketua_rt").all()
-        
-        if not existing_users:
-            print("❌ Error: No ketua_rt users found.")
-            existing_users = db.query(User).all()
+        # Get existing residents
+        existing_residents = db.query(Resident).all()
+        if not existing_residents:
+            print("Error: Residents table is empty.")
+            return
 
         statuses = ["pending_approval", "approved", "rejected"]
         approvals_data: List[ResidentApproval] = []
 
         for i in range(15):
+            resident = random.choice(existing_residents)
             status = random.choice(statuses)
             approval = ResidentApproval(
-                resident_id=None if status == "pending_approval" else random.randint(1, 5),
-                name=fake.name(),
-                nik=str(fake.unique.random_number(digits=16, fix_len=True)),
-                gender=random.choice(["Laki-laki", "Perempuan"]),
-                birth_place=fake.city(),
-                birth_date=fake.date_of_birth(minimum_age=17, maximum_age=80),
-                phone=fake.phone_number(),
+                resident_id=resident.id,
+                name=resident.name,
+                nik=resident.nik,
+                gender=resident.gender,
+                birth_place=resident.birth_place,
+                birth_date=str(resident.birth_date),
+                phone=resident.phone,
                 address=fake.address(),
+                family_number=str(random.randint(1000000000000000, 9999999999999999)),
                 status=status,
-                note=fake.sentence() if status == "rejected" else None,
-                approved_by=random.choice(existing_users).id if status != "pending_approval" else None,
-                created_at=fake.date_time_this_month()
+                created_at=fake.date_time_this_month(),
+                updated_at=fake.date_time_this_month()
             )
             approvals_data.append(approval)
 
@@ -49,7 +50,7 @@ def resident_approvals():
         db.commit()
         print(f"✅ Successfully seeded {len(approvals_data)} resident approvals.")
     except Exception as e:
-        print(f"❌ Error seeding resident_approvals table: {e}")
+        print(f"❌ Error seeding resident approvals table: {e}")
         db.rollback()
     finally:
         db.close()

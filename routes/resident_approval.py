@@ -72,9 +72,14 @@ def update_resident_approval(
     2. If status="approved" + family_id NOT provided: auto-create family from family_number + set as head_resident
     3. If status="rejected": reject registration
     """
+    print(f'[DEBUG] PUT /resident-approvals/{approval_id} called')
+    print(f'[DEBUG] approval_id={approval_id}, data={data}, current_user={current_user.id}')
+    
     controller = ResidentApprovalController(db)
     
     if data.status == "approved":
+        print(f'[DEBUG] Processing approval for approval_id={approval_id}')
         return controller.approve_resident(approval_id, data, current_user)
     elif data.status == "rejected":
+        print(f'[DEBUG] Processing rejection for approval_id={approval_id}')
         return controller.reject_resident(approval_id, data, current_user)

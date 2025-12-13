@@ -1,6 +1,6 @@
-from datetime import datetime
-from pydantic import BaseModel, field_validator, ConfigDict
-from typing import Optional
+from datetime import datetime, date
+from pydantic import BaseModel, field_validator, ConfigDict, field_serializer
+from typing import Optional, Union
 
 
 class ResidentApprovalBase(BaseModel):
@@ -32,19 +32,29 @@ class ResidentApprovalUpdate(BaseModel):
 class ResidentApprovalResponse(BaseModel):
     """Response for resident approval"""
     id: int
-    resident_id: Optional[int]
-    name: Optional[str]
-    nik: Optional[str]
-    gender: Optional[str]
-    birth_place: Optional[str]
-    birth_date: Optional[str]
-    phone: Optional[str]
-    address: Optional[str]
+    resident_id: Optional[int] = None
+    name: Optional[str] = None
+    nik: Optional[str] = None
+    gender: Optional[str] = None
+    birth_place: Optional[str] = None
+    birth_date: Optional[Union[str, date]] = None  # Accept both string and date
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    family_number: Optional[str] = None
     status: str
-    note: Optional[str]
-    approved_by: Optional[int]
+    note: Optional[str] = None
+    approved_by: Optional[int] = None
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: Optional[datetime] = None
+    
+    @field_serializer('birth_date', when_used='json')
+    def serialize_birth_date(self, value: Union[str, date, None]) -> Optional[str]:
+        """Convert date to ISO string format"""
+        if value is None:
+            return None
+        if isinstance(value, date):
+            return value.isoformat()
+        return str(value)
     
     class Config:
         from_attributes = True
@@ -57,6 +67,7 @@ class ResidentApprovalListResponse(BaseModel):
     name: Optional[str]
     nik: Optional[str]
     gender: Optional[str]
+    family_number: Optional[str]
     status: str
     note: Optional[str]
     created_at: datetime

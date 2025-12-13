@@ -26,6 +26,7 @@ def upgrade() -> None:
         sa.Column("birth_date", sa.Date(), nullable=True),
         sa.Column("phone", sa.String(20), nullable=True),
         sa.Column("address", sa.Text(255), nullable=True),
+        sa.Column("family_number", sa.String(50), nullable=True),  # Added family_number
         sa.Column("status", sa.String(50), nullable=True),
         sa.Column("note", sa.Text(255), nullable=True),
         sa.Column("approved_by", sa.Integer(), sa.ForeignKey("users.id"), nullable=True),
