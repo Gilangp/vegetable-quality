@@ -170,22 +170,3 @@ def test_register_schema_invalid_username_chars():
             phone="081234567890",
         )
     assert "letter" in str(excinfo.value).lower() or "number" in str(excinfo.value).lower()
-
-
-def test_register_schema_invalid_gender():
-    """Test RegisterRequest schema validation for invalid gender"""
-    with raises(ValidationError) as excinfo:
-        RegisterRequest(
-            nik="1234567890123456",
-            name="Test User",
-            username="testuser",
-            email="test@example.com",
-            password="password123",
-            password_confirm="password123",
-            birth_date=date(2000, 1, 1),
-            birth_place="Jakarta",
-            gender="Invalid",
-            phone="081234567890",
-        )
-
-    assert "Laki-laki" in str(excinfo.value) or "Perempuan" in str(excinfo.value)

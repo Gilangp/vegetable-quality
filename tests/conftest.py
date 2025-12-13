@@ -6,10 +6,16 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from typing import Generator
 from config.database import Base
 
-# Load env
-load_dotenv()
+# Load .env.test for testing environment
+# This ensures tests use SQLite in-memory instead of live MySQL
+test_env_file = os.path.join(os.path.dirname(__file__), "..", ".env.test")
+if os.path.exists(test_env_file):
+    load_dotenv(test_env_file, override=True)
+else:
+    load_dotenv()
 
 # Database URL
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
@@ -25,7 +31,7 @@ def db_engine():
 
 
 @pytest.fixture(scope="function")
-def db(db_engine) -> Session:
+def db(db_engine) -> Generator[Session, None, None]:
     """Create a new database session for each test"""
     connection = db_engine.connect()
     transaction = connection.begin()
