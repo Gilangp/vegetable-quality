@@ -10,6 +10,8 @@ class FamilyMutation(Base):
     family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
     mutation_type = Column(String(100), nullable=True)
     description = Column(Text(), nullable=True)
+    alamat_lama = Column(Text(), nullable=True)
+    alamat_baru = Column(Text(), nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     
     # Relationships
