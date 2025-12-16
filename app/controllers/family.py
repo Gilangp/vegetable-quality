@@ -62,6 +62,7 @@ class FamilyController:
             new_family = Family(
                 family_number=data.family_number,
                 head_resident_id=data.head_resident_id,
+                ownership_status=getattr(data, 'ownership_status', None),
             )
             
             self.db.add(new_family)
@@ -112,6 +113,9 @@ class FamilyController:
             # allow explicit null to clear head_resident_id
             if 'head_resident_id' in payload:
                 family.head_resident_id = payload['head_resident_id']
+            # ownership status update
+            if 'ownership_status' in payload:
+                family.ownership_status = payload['ownership_status']
             
             family.updated_at = datetime.now()
             
