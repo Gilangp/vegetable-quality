@@ -27,8 +27,45 @@ class HouseController:
             house = self.db.query(HouseModel).filter(HouseModel.id == house_id).first()
             if not house:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="House not found")
-            house.resident_count = len(house.residents) if house.residents else 0
-            return house
+
+            # Ensure residents are loaded so we can include them in response
+            residents = house.residents or []
+            house.resident_count = len(residents)
+
+            # Build serializable dict matching HouseResponse, include residents list
+            residents_list = []
+            for r in residents:
+                residents_list.append({
+                    "id": r.id,
+                    "family_id": r.family_id,
+                    "house_id": r.house_id,
+                    "nik": r.nik,
+                    "name": r.name,
+                    "gender": r.gender,
+                    "birth_place": getattr(r, 'birth_place', None),
+                    "birth_date": getattr(r, 'birth_date', None),
+                    "phone": r.phone,
+                    "religion": r.religion,
+                    "blood_type": r.blood_type,
+                    "education": r.education,
+                    "occupation": r.occupation,
+                    "status": r.status,
+                    "created_at": r.created_at,
+                    "updated_at": r.updated_at,
+                })
+
+            return {
+                "id": house.id,
+                "house_number": house.house_number,
+                "address": house.address,
+                "rt": house.rt,
+                "rw": house.rw,
+                "status": getattr(house, 'status', 'available'),
+                "resident_count": house.resident_count,
+                "residents": residents_list,
+                "created_at": house.created_at,
+                "updated_at": house.updated_at,
+            }
         except HTTPException:
             raise
         except Exception as e:
