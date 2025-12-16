@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
 from app.models.family import Family
+from app.models.family_mutation import FamilyMutation
 from app.models.resident_model import Resident
 from app.schemas.family import FamilyCreate, FamilyUpdate
 from datetime import datetime
@@ -60,7 +61,7 @@ class FamilyController:
             # Create new family
             new_family = Family(
                 family_number=data.family_number,
-                head_resident_id=data.head_resident_id
+                head_resident_id=data.head_resident_id,
             )
             
             self.db.add(new_family)
@@ -104,11 +105,13 @@ class FamilyController:
                         detail=f"Nomor keluarga '{data.family_number}' sudah terdaftar"
                     )
             
-            # Update fields
-            if data.family_number:
-                family.family_number = data.family_number
-            if data.head_resident_id is not None:
-                family.head_resident_id = data.head_resident_id
+            # Update fields. Use model_dump to detect explicitly provided fields
+            payload = data.model_dump(exclude_unset=True)
+            if 'family_number' in payload and payload['family_number']:
+                family.family_number = payload['family_number']
+            # allow explicit null to clear head_resident_id
+            if 'head_resident_id' in payload:
+                family.head_resident_id = payload['head_resident_id']
             
             family.updated_at = datetime.now()
             
@@ -151,6 +154,9 @@ class FamilyController:
                     detail=f"Tidak dapat menghapus keluarga. Masih ada {resident_count} anggota keluarga"
                 )
             
+            # Delete related family_mutations first to avoid FK integrity errors
+            self.db.query(FamilyMutation).filter(FamilyMutation.family_id == family_id).delete()
+
             self.db.delete(family)
             self.db.commit()
             
@@ -197,7 +203,7 @@ class FamilyController:
             # Add to family
             resident.family_id = family_id
             resident.updated_at = datetime.now()
-            
+
             self.db.commit()
             self.db.refresh(resident)
             
@@ -251,8 +257,17 @@ class FamilyController:
             self.db.commit()
             self.db.refresh(resident)
 
-            # Return success message
-            return {"message": "Anggota berhasil dihapus dari keluarga", "resident_id": resident.id}
+            # If family now has zero members, ensure head_resident_id cleared
+            remaining = self.db.query(Resident).filter(Resident.family_id == family_id).count()
+            if remaining == 0:
+                family.head_resident_id = None
+                family.updated_at = datetime.now()
+                self.db.add(family)
+                self.db.commit()
+                self.db.refresh(family)
+
+            # Return the updated resident object so the route can build the response
+            return resident
         except HTTPException:
             self.db.rollback()
             raise
