@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from routes import residents, auth, resident_approval, family, income, house, users
 import routes.prediction as prediction_router
+import routes.family_mutations as family_mutations_router
 import os
 
 BASE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +43,7 @@ app.include_router(family.router)
 app.include_router(income.router)
 app.include_router(house.router)
 app.include_router(users.router)
+app.include_router(family_mutations_router.router)
 
 if __name__ == "__main__":
     import uvicorn

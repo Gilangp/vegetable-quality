@@ -7,6 +7,7 @@ from app.schemas.house import HouseResponse
 class FamilyBase(BaseModel):
     family_number: str
     head_resident_id: Optional[int] = None
+    ownership_status: Optional[str] = None
     
     @field_validator('family_number')
     def validate_family_number(cls, v: str) -> str:
@@ -22,6 +23,7 @@ class FamilyCreate(FamilyBase):
 class FamilyUpdate(BaseModel):
     family_number: Optional[str] = None
     head_resident_id: Optional[int] = None
+    ownership_status: Optional[str] = None
     
     @field_validator('family_number')
     def validate_family_number(cls, v: Optional[str]) -> Optional[str]:
@@ -54,6 +56,7 @@ class FamilyResponse(FamilyBase):
     updated_at: Optional[datetime] = None
     residents: List[ResidentInFamily] = Field(default_factory=list)
     head_resident: Optional[ResidentInFamily] = None
+    ownership_status: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,6 +68,7 @@ class FamilyListResponse(BaseModel):
     head_resident_id: Optional[int]
     head_resident: Optional[ResidentInFamily] = None
     resident_count: int = 0
+    ownership_status: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     

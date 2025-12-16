@@ -44,6 +44,7 @@ def list_families(
                 "family_number": family.family_number,
                 "head_resident_id": family.head_resident_id,
                 "resident_count": len(family.residents) if family.residents else 0,
+                "ownership_status": getattr(family, 'ownership_status', None),
                 "head_resident": {
                     "id": family.head_resident.id,
                     "name": family.head_resident.name,
