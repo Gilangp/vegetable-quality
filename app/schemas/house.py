@@ -1,6 +1,9 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, field_validator
-from typing import Optional
+from typing import Optional, List
+
+# Import resident response schema to allow returning nested residents
+from app.schemas.residents import ResidentResponse
 
 
 class HouseBase(BaseModel):
@@ -36,6 +39,7 @@ class HouseResponse(BaseModel):
     rw: Optional[str] = None
     status: Optional[str] = None
     resident_count: int = 0
+    residents: Optional[List[ResidentResponse]] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
