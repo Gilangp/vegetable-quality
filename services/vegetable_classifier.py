@@ -13,23 +13,19 @@ from pathlib import Path
 class VegetableClassifier:
     """Layanan untuk klasifikasi keutuhan sayur (Utuh/Tidak Utuh)."""
 
-    def __init__(self, model_path: str = "models/model_mobilenetv2_classifier.tflite"):
+    def __init__(self, model_path: str = "models/model_mobilenetv2_classifier.keras"):
         """
-        Inisialisasi classifier dengan TFLite model.
+        Inisialisasi classifier dengan Keras model.
 
         Args:
-            model_path: Path ke file TFLite model
+            model_path: Path ke file Keras model (.keras)
         """
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model tidak ditemukan di {model_path}")
 
         self.model_path = model_path
-        self.interpreter = tf.lite.Interpreter(model_path=model_path)
-        self.interpreter.allocate_tensors()
-
-        # get input and output details
-        self.input_details = self.interpreter.get_input_details()
-        self.output_details = self.interpreter.get_output_details()
+        # Load keras model
+        self.model = tf.keras.models.load_model(model_path)
 
         # class labels
         self.class_labels = ["Utuh", "Tidak Utuh"]
@@ -105,20 +101,11 @@ class VegetableClassifier:
         # Add batch dimension: (224, 224, 3) → (1, 224, 224, 3)
         input_data = np.expand_dims(processed_image, axis=0)
 
-        # Set input tensor
-        self.interpreter.set_tensor(
-            self.input_details[0]["index"],
-            input_data.astype(self.input_details[0]["dtype"]),
-        )
-
-        # Run inference
-        self.interpreter.invoke()
-
-        # Get output tensor
-        output_data = self.interpreter.get_tensor(self.output_details[0]["index"])
-
+        # Run prediction using Keras model
+        predictions = self.model.predict(input_data, verbose=0)
+        
         # Parse results
-        probabilities = output_data[0]  # (2,) array
+        probabilities = predictions[0]  # (2,) array
         predicted_class_idx = np.argmax(probabilities)
         confidence = float(probabilities[predicted_class_idx])
 

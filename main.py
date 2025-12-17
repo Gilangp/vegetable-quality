@@ -2,13 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from routes import residents, auth, resident_approval, family, income, house, users
+from routes import residents, auth, resident_approval, family, income, house, users, marketplace
 import routes.prediction as prediction_router
 import routes.family_mutations as family_mutations_router
 import os
 
 BASE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 VIEWS_DIRECTORY = os.path.join(BASE_DIRECTORY, "views")
+UPLOADS_DIRECTORY = os.path.join(BASE_DIRECTORY, "uploads")
+
+# Create uploads directory if it doesn't exist
+os.makedirs(UPLOADS_DIRECTORY, exist_ok=True)
 
 app = FastAPI(
     title="Pengujian Deteksi Keutuhan Sayur",
@@ -20,6 +24,7 @@ app = FastAPI(
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.mount("/assets", StaticFiles(directory=VIEWS_DIRECTORY, html=True), name="views")
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIRECTORY), name="uploads")
 
 @app.get("/", response_class=FileResponse)
 async def root():
@@ -44,6 +49,7 @@ app.include_router(income.router)
 app.include_router(house.router)
 app.include_router(users.router)
 app.include_router(family_mutations_router.router)
+app.include_router(marketplace.router)
 
 if __name__ == "__main__":
     import uvicorn
