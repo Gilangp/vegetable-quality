@@ -135,10 +135,17 @@ async def create_product(
     **Note:**
     Verifikasi otomatis dilakukan saat upload untuk semua user (including admin)
     """
+    # Validate: User harus punya resident_id
+    if not current_user.resident_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Hanya warga yang terdaftar bisa upload produk. Silakan hubungi admin untuk registrasi sebagai warga."
+        )
+    
     # Cek apakah sudah ada produk dengan nama sama dari user ini
     existing = MarketplaceController.get_products(db, status=None)
     for prod in existing:
-        if prod.resident_id == current_user.id and prod.name.lower() == body.name.lower():
+        if prod.resident_id == current_user.resident_id and prod.name.lower() == body.name.lower():
             raise HTTPException(
                 status_code=400, 
                 detail=f"Anda sudah memiliki produk dengan nama '{body.name}'. Gunakan nama lain atau edit produk yang sudah ada."
@@ -147,7 +154,7 @@ async def create_product(
     # Create product
     product = MarketplaceController.create_product(
         db=db,
-        resident_id=current_user.id,
+        resident_id=current_user.resident_id,
         name=body.name,
         price=body.price,
         description=body.description,
@@ -183,7 +190,7 @@ async def update_product(
     
     # Check ownership - allow admin to manage all products
     is_admin = current_user.role == "admin" or current_user.role == "admin_sistem"
-    if product.resident_id != current_user.id and not is_admin:
+    if product.resident_id != current_user.resident_id and not is_admin:
         raise HTTPException(status_code=403, detail="Anda tidak memiliki izin untuk mengubah produk ini")
     
     # Cek nama duplikat jika nama diubah
@@ -224,7 +231,7 @@ async def delete_product(
     
     # Check ownership - allow admin to delete any product
     is_admin = current_user.role == "admin" or current_user.role == "admin_sistem"
-    if product.resident_id != current_user.id and not is_admin:
+    if product.resident_id != current_user.resident_id and not is_admin:
         raise HTTPException(status_code=403, detail="Anda tidak memiliki izin untuk menghapus produk ini")
     
     success = MarketplaceController.delete_product(db, product_id)
