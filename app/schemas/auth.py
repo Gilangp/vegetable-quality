@@ -1,0 +1,114 @@
+from pydantic import BaseModel, EmailStr, field_validator
+from typing import Optional
+from datetime import datetime, date
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: int
+    user: 'UserResponse'
+
+class UserResponse(BaseModel):
+    id: int
+    resident_id: Optional[int] = None
+    name: str
+    username: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    role: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class RegisterRequest(BaseModel):
+    # Identity Numbers
+    nik: str  # Nomor Induk Kependudukan (16 digits)
+    family_number: str  # Nomor Kartu Keluarga (16 digits)
+    
+    # Personal Data
+    name: str
+    gender: str  # Laki-laki, Perempuan
+    birth_place: Optional[str] = None
+    birth_date: date  # YYYY-MM-DD
+    
+    # Account Information
+    username: str
+    email: str
+    phone: Optional[str] = None
+    password: str
+    password_confirm: str
+    
+    @field_validator('nik')
+    def validate_nik(cls, v: str) -> str:
+        if len(v) != 16:
+            raise ValueError('NIK harus 16 digit')
+        if not v.isdigit():
+            raise ValueError('NIK hanya boleh berisi angka')
+        return v
+    
+    @field_validator('family_number')
+    def validate_family_number(cls, v: str) -> str:
+        if len(v) != 16:
+            raise ValueError('Nomor Kartu Keluarga harus 16 digit')
+        if not v.isdigit():
+            raise ValueError('Nomor Kartu Keluarga hanya boleh berisi angka')
+        return v
+    
+    @field_validator('gender')
+    def validate_gender(cls, v: str) -> str:
+        valid_genders = ['Laki-laki', 'Perempuan']
+        if v not in valid_genders:
+            raise ValueError(f'Gender harus salah satu dari: {", ".join(valid_genders)}')
+        return v
+    
+    @field_validator('birth_date')
+    def validate_birth_date(cls, v: date) -> date:
+        if v > datetime.now().date():
+            raise ValueError('Tanggal lahir tidak boleh di masa depan')
+        return v
+    
+    @field_validator('username')
+    def validate_username(cls, v: str) -> str:
+        if len(v) < 3:
+            raise ValueError('Username must be at least 3 characters long')
+        if not v.isalnum() and '_' not in v:
+            raise ValueError('Username can only contain letters, numbers, and underscores')
+        return v.lower()
+    
+    @field_validator('password')
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        return v
+    
+    @field_validator('password_confirm')
+    def validate_password_confirm(cls, v: str, info) -> str:
+        if 'password' in info.data and v != info.data['password']:
+            raise ValueError('Passwords do not match')
+        return v
+
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+class CurrentUserResponse(BaseModel):
+    id: int
+    resident_id: Optional[int] = None
+    name: str
+    username: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    role: str
+    resident: Optional[dict] = None
+    
+    class Config:
+        from_attributes = True

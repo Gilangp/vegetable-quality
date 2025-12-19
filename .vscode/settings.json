@@ -11,6 +11,7 @@
     "**/.svn": true,
     "**/Thumbs.db": true,
     "**/venv": true,
+    "**/.tox": true
   },
   "python.analysis.autoImportCompletions": true,
   "python.analysis.completeFunctionParens": true,

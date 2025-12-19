@@ -13,12 +13,12 @@ IS_CI = os.getenv("CI", "false").lower() == "true"
 # Database configuration
 if IS_TESTING or IS_CI:
     # Use SQLite for testing/CI
-    DATABASE_URL = "sqlite:///:memory:"
-    print("🧪 Testing mode: Using SQLite in-memory database")
+    database_url = "sqlite:///:memory:"
+    print("[TEST] Testing mode: Using SQLite in-memory database")
 else:
     # Use MySQL for local development
-    DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root@localhost:3306/pbl_marketplace")
-    print(f"✅ Development mode: Using {DATABASE_URL}")
+    database_url = os.getenv("DATABASE_URL")
+    print(f"[OK] Development mode: Using {database_url}")
 
 def create_db_if_not_exists(url: str):
     """Create database if needed (skip for SQLite)"""
@@ -35,28 +35,28 @@ def create_db_if_not_exists(url: str):
             with temp_engine.connect() as conn:
                 conn.execute(text("COMMIT")) 
                 conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_url.database}"))
-                print(f"✅ MySQL database '{db_url.database}' siap digunakan.")
+                print(f"[OK] MySQL database '{db_url.database}' siap digunakan.")
         except Exception as e:
-            print(f"⚠️ Gagal cek database: {e}")
+            print(f"[WARN] Gagal cek database: {e}")
         finally:
             temp_engine.dispose()
     except Exception as e:
-        print(f"ℹ️ Skipping database creation: {e}")
+        print(f"[INFO] Skipping database creation: {e}")
 
 # Create DB if needed (skip for SQLite)
-if "sqlite" not in DATABASE_URL.lower():
-    create_db_if_not_exists(DATABASE_URL)
+if "sqlite" not in str(database_url).lower():
+    create_db_if_not_exists(str(database_url))
 
 # Set up the database engine and session
 # For SQLite, use check_same_thread=False for testing
-if "sqlite" in DATABASE_URL.lower():
+if "sqlite" in str(database_url).lower():
     engine = create_engine(
-        DATABASE_URL,
+        str(database_url),
         connect_args={"check_same_thread": False},
         echo=False
     )
 else:
-    engine = create_engine(DATABASE_URL, echo=False)
+    engine = create_engine(str(database_url), echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

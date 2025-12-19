@@ -1,0 +1,90 @@
+body {
+  align-items: center;
+  background-color: #121212;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+h1 {
+  -webkit-background-clip: text;
+  background: -webkit-linear-gradient(#eee, #333);
+  background-clip: text;
+  font-size: 4rem;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+  text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+}
+
+p {
+  color: #a0a0a0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  margin-top: 0;
+  max-width: 600px;
+  padding: 0 20px;
+}
+
+div {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+div a {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 12px 30px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+div a:nth-child(1) {
+  background-color: #ffffff;
+  color: #121212;
+}
+
+div a:nth-child(1):hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+div a:nth-child(2) {
+  background-color: transparent;
+  border: 1px solid #ffffff;
+  color: #ffffff;
+}
+
+div a:nth-child(2):hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+h5 {
+  bottom: 20px;
+  color: #666;
+  font-size: 0.8rem;
+  font-weight: normal;
+  position: absolute;
+}
+
+h5 a {
+  border-bottom: 1px dotted #888;
+  color: #888;
+  transition: color 0.3s;
+  text-decoration: none;
+}
+
+h5 a:hover {
+  border-bottom: 1px solid #fff;
+  color: #fff;
+}

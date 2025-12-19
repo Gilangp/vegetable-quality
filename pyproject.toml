@@ -9,6 +9,7 @@ select = [
     "F",  # Pyflakes: error (variabel tidak terdefinisi, dll.)
     "E",  # Pycodestyle: error gaya (pep8)
     "W",  # Pycodestyle: peringatan gaya (pep8)
+    
     "I",  # isort: import yang tidak terurut
     "UP", # pyupgrade: sintaks yang lebih modern
     "B",  # flake8-bugbear: potensi bug (misal: argumen default)
@@ -19,6 +20,7 @@ exclude = [".git", "venv", ".venv", "__pycache__", "build", "dist", "migrations"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
